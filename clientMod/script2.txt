@@ -1,0 +1,14 @@
+show
+add
+5
+2
+5
+5
+5
+5
+5
+5
+5
+5
+execute_script clientMod/script3.txt
+show

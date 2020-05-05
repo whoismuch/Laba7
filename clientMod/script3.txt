@@ -1,0 +1,15 @@
+info
+show
+remove_by_id 1
+add
+5
+3
+5
+5
+5
+5
+5
+5
+5
+5
+info

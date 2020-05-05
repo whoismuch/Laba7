@@ -1,0 +1,122 @@
+[
+  {
+    "name": "5",
+    "id": 1,
+    "coordinates": {
+      "x": 5,
+      "y": 5
+    },
+    "creationDate": "2020-04-16T13:05:22.038+03:00[Europe/Moscow]",
+    "from": {
+      "x": 5,
+      "y": 5,
+      "name": "5"
+    },
+    "to": {
+      "x": 5,
+      "y": 5,
+      "name": "5"
+    },
+    "distance": 5.0
+  },
+  {
+    "name": "5",
+    "id": 2,
+    "coordinates": {
+      "x": 5,
+      "y": 5
+    },
+    "creationDate": "2020-04-16T13:05:22.038+03:00[Europe/Moscow]",
+    "from": {
+      "x": 5,
+      "y": 5,
+      "name": "5"
+    },
+    "to": {
+      "x": 5,
+      "y": 5,
+      "name": "5"
+    },
+    "distance": 5.0
+  },
+  {
+    "name": "5",
+    "id": 3,
+    "coordinates": {
+      "x": 5,
+      "y": 5
+    },
+    "creationDate": "2020-04-16T13:05:22.038+03:00[Europe/Moscow]",
+    "from": {
+      "x": 5,
+      "y": 5,
+      "name": "5"
+    },
+    "to": {
+      "x": 5,
+      "y": 5,
+      "name": "5"
+    },
+    "distance": 5.0
+  },
+  {
+    "name": "5",
+    "id": 4,
+    "coordinates": {
+      "x": 5,
+      "y": 5
+    },
+    "creationDate": "2020-04-16T13:05:22.038+03:00[Europe/Moscow]",
+    "from": {
+      "x": 5,
+      "y": 5,
+      "name": "5"
+    },
+    "to": {
+      "x": 5,
+      "y": 5,
+      "name": "5"
+    },
+    "distance": 5.0
+  },
+  {
+    "name": "5",
+    "id": 5,
+    "coordinates": {
+      "x": 5,
+      "y": 5
+    },
+    "creationDate": "2020-04-16T13:05:22.038+03:00[Europe/Moscow]",
+    "from": {
+      "x": 5,
+      "y": 5,
+      "name": "5"
+    },
+    "to": {
+      "x": 5,
+      "y": 5,
+      "name": "5"
+    },
+    "distance": 5.0
+  },
+  {
+    "name": "5",
+    "id": 6,
+    "coordinates": {
+      "x": 5,
+      "y": 5
+    },
+    "creationDate": "2020-04-16T13:05:22.038+03:00[Europe/Moscow]",
+    "from": {
+      "x": 5,
+      "y": 5,
+      "name": "5"
+    },
+    "to": {
+      "x": 5,
+      "y": 5,
+      "name": "5"
+    },
+    "distance": 5.0
+  }
+]
