@@ -1,6 +1,5 @@
 package client;
 
-import com.sun.javaws.IconUtil;
 import common.command.CommandDescription;
 import common.generatedClasses.Route;
 
@@ -25,64 +24,42 @@ public class ClientProviding {
     private String arg;
     private SocketChannel outcommingchannel;
 
+
+    public ClientProviding ( ) {
+        Scanner scanner = new Scanner(System.in);
+        userManager = new UserManager(scanner,
+                new BufferedWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8)),
+                true);
+    }
+
     /**
      * Устанавливает активное соединение с сервером.
      */
-    public void clientWork (boolean iBegin) {
-        try (Scanner scanner = new Scanner(System.in)) {
-//            SocketAddress outcoming = new InetSocketAddress("localhost", 8080);
-            if (iBegin) {
-                userManager = new UserManager(scanner,
-                        new BufferedWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8)),
-                        true);
-            }
-            while (true) {
-                SocketAddress outcoming = new InetSocketAddress(userManager.readString("Введите адрес: ", false), Integer.parseInt(userManager.readString("Введите порт: ", false)));
-                try (SocketChannel outcomingchannel = SocketChannel.open(outcoming)) {
+    public void clientWork ( ) {
+        SocketAddress outcoming = new InetSocketAddress(userManager.readString("Введите адрес: ", false), Integer.parseInt(userManager.readString("Введите порт: ", false)));
+        try (SocketChannel outcomingchannel = SocketChannel.open(outcoming)) {
 
-                    this.outcommingchannel = outcomingchannel;
 
-                    dataExchangeWithServer = new DataExchangeWithServer(outcomingchannel);
 
-                    selector = Selector.open( );
-                    outcomingchannel.configureBlocking(false);
-                    outcomingchannel.register(selector, SelectionKey.OP_READ);
+            this.outcommingchannel = outcomingchannel;
 
-                    String beginMessage = "I've already got everything :(";
-                    if (iBegin) beginMessage = "I'm ready to get available commands";
-                    dataExchangeWithServer.sendToServer(beginMessage);
-                    if (iBegin) {
-                        selector.select( );
-                        userManager.setAvailable((HashMap) dataExchangeWithServer.getFromServer( ));
-                        iBegin = false;
-                    }
+            dataExchangeWithServer = new DataExchangeWithServer(outcomingchannel);
 
-                    clientLaunch( );
+            selector = Selector.open( );
+            outcomingchannel.configureBlocking(false);
+            outcomingchannel.register(selector, SelectionKey.OP_READ);
 
-                    exit( );
-                } catch (UnresolvedAddressException e) {
-                    userManager.writeln("Ойойой, такого адреса ведь не существует");
-                    continue;
-                } catch (IOException e) {
-                    if (!commandname.equals("exit")) {
-                        userManager.writeln("Нет связи с сервером. Подключиться ещё раз (введите {да} или {нет})?");
-                        String answer;
-                        while (!(answer = userManager.read( )).equals("да")) {
-                            switch (answer) {
-                                case "":
-                                    break;
-                                case "нет":
-                                    exit( );
-                                    break;
-                                default:
-                                    userManager.write("Введите корректный ответ.");
-                            }
-                        }
-                        userManager.writeln("Подключение ...");
-                        continue;
-                    } else exit( );
-                }
-            }
+            selector.select( );
+            userManager.setAvailable((HashMap) dataExchangeWithServer.getFromServer( ));
+
+            clientLaunch( );
+
+        } catch (UnresolvedAddressException | NumberFormatException ex) {
+            userManager.writeln("Ойойой, такого адреса ведь не существует");
+            clientWork();
+        } catch (IOException e) {
+            lostConnection( );
+            clientWork();
         }
     }
 
@@ -150,7 +127,9 @@ public class ClientProviding {
 
     public void getResult ( ) throws IOException {
         selector.select( );
-        userManager.writeln(dataExchangeWithServer.getFromServer( ).toString( ));
+        String s = dataExchangeWithServer.getFromServer( ).toString( );
+        userManager.writeln(s);
+//        if (s.equals("Завершаю работу...")) exit();
 
     }
 
@@ -160,7 +139,7 @@ public class ClientProviding {
                 getResult( );
             } catch (IOException e) {
                 lostConnection( );
-                clientWork(false);
+                clientWork( );
             }
             System.out.println("\n");
         }

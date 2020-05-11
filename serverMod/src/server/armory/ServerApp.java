@@ -6,50 +6,49 @@ import server.receiver.collection.RouteBook;
 import java.io.IOException;
 import java.net.*;
 import java.nio.channels.ServerSocketChannel;
+import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ServerApp {
 
-    /**
-     * Точка входа в программу. Управляет подключением к клиентам и созданием потоков для каждого из них.
-     *
-     * @param args массив по умолчанию в основном методе. Не используется здесь.
-     */
-    public static void main (String[] args) throws IOException {
+    static ExecutorService executeIt = Executors.newFixedThreadPool(2);
 
-        RouteBook routeBook = new RouteBook( );
-        Navigator navigator = new Navigator(routeBook);
-        SocketAddress address = new InetSocketAddress( 8080);
+    public static void main (String[] args) {
 
-        try (ServerSocketChannel ss = ServerSocketChannel.open()) {
-            ss.bind(address);
-            System.out.print("Сервер начал слушать клиента " + "\nПорт " + ss.getLocalAddress( ) +
+        Runtime.getRuntime( ).addShutdownHook(new Thread(( ) -> {
+            executeIt.shutdown( );
+        }));
+
+        try {
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Введите порт: ");
+
+            int port = Integer.parseInt(scanner.nextLine( ));
+            SocketAddress address = new InetSocketAddress(port);
+
+            System.out.print("Сервер начал слушать клиента " + "\nПорт " + port +
                     " / Адрес " + InetAddress.getLocalHost( ) + ".\nОжидаем подключения клиента\n ");
-//            String path = args[0];
-            String path = "serverMod/routes.json";
-            Driver driver = new Driver( );
-            ServerConnection sc = new ServerConnection(driver, navigator, path);
-
-            Runtime.getRuntime().addShutdownHook(new Thread(( ) -> {
-                System.out.println("\n Воу, чем я вам не угодил? Ну ладно, сохраню коллекцию...");
-                sc.theEnd();
-            }));
-
-            driver.load(null, navigator, path);
 
             while (true) {
-                Socket incoming = (ss.accept( )).socket();
-                System.out.println(incoming + " подключился к серверу.");
-                sc.setIncoming(incoming);
-                sc.serverWork( );
-                //incoming.shutdownOutput();
-                incoming.close();
+                try (ServerSocketChannel ss = ServerSocketChannel.open( )) {
+                    ss.bind(address);
+
+                    Socket incoming = ss.accept( ).socket( );
+                    System.out.println(incoming + " подключился к серверу.");
+                    executeIt.execute(new ServerConnection(incoming));
+
+
+                } catch (UnknownHostException | NumberFormatException ex) {
+                    System.out.println("Ой, неполадочки");
+                } catch (IOException e) {
+                    e.printStackTrace( );
+                }
             }
+        } catch (UnknownHostException | NumberFormatException ex) {
+            System.out.println("Ой, такого порта же не существует(");
 
-        } catch (UnknownHostException e) {
-            e.printStackTrace( );
-        } catch (IOException e) {
-            e.printStackTrace( );
         }
-    }
 
+    }
 }
