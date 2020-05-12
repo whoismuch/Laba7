@@ -22,7 +22,6 @@ public class ClientProviding {
     private Selector selector;
     private String commandname = "check";
     private String arg;
-    private SocketChannel outcommingchannel;
 
 
     public ClientProviding ( ) {
@@ -36,12 +35,9 @@ public class ClientProviding {
      * Устанавливает активное соединение с сервером.
      */
     public void clientWork ( ) {
-        SocketAddress outcoming = new InetSocketAddress(userManager.readString("Введите адрес: ", false), Integer.parseInt(userManager.readString("Введите порт: ", false)));
-        try (SocketChannel outcomingchannel = SocketChannel.open(outcoming)) {
-
-
-
-            this.outcommingchannel = outcomingchannel;
+        try (SocketChannel outcomingchannel = SocketChannel.open()) {
+            SocketAddress outcoming = new InetSocketAddress(userManager.readString("Введите адрес: ", false), Integer.parseInt(userManager.readString("Введите порт: ", false)));
+            outcomingchannel.connect(outcoming);
 
             dataExchangeWithServer = new DataExchangeWithServer(outcomingchannel);
 
@@ -54,8 +50,11 @@ public class ClientProviding {
 
             clientLaunch( );
 
-        } catch (UnresolvedAddressException | NumberFormatException ex) {
+        } catch (UnresolvedAddressException ex) {
             userManager.writeln("Ойойой, такого адреса ведь не существует");
+            clientWork( );
+        } catch (NumberFormatException ex) {
+            userManager.writeln("Тут, видимо, должна быть циферка, попробуйте еще раз, позязя");
             clientWork();
         } catch (IOException e) {
             lostConnection( );

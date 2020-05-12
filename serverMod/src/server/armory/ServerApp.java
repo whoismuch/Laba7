@@ -47,6 +47,7 @@ public class ServerApp {
             }
         } catch (UnknownHostException | NumberFormatException ex) {
             System.out.println("Ой, такого порта же не существует(");
+            ServerApp.main(null);
 
         }
 
