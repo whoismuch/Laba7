@@ -106,11 +106,11 @@ public class Driver {
         return available;
     }
 
-    public void load(SendToClient sendToClient, ICollectionManager icm, String path) {
-        (new LoadCommand()).execute(sendToClient, icm, path, null, this);
-    }
+//    public void load(SendToClient sendToClient, ICollectionManager icm, String path) {
+//        (new LoadCommand()).execute(sendToClient, icm, path, null, this);
+//    }
 
-    public void save(SendToClient sendToClient, ICollectionManager icm, String path) {
-        (new SaveCommand()).execute(sendToClient, icm, path, null, this);
-    }
+//    public void save(SendToClient sendToClient, ICollectionManager icm, String path) {
+//        (new SaveCommand()).execute(sendToClient, icm, path, null, this);
+//    }
 }

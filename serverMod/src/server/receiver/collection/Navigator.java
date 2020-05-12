@@ -12,6 +12,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -19,10 +21,13 @@ import java.util.stream.Stream;
  * Класс для работы с коллекцией
  */
 public class Navigator implements ICollectionManager {
+
     private ICollection<Route> routeBook;
+    private ReadWriteLock lock;
 
     public Navigator(ICollection<Route> routeBook) {
         this.routeBook = routeBook;
+        lock = new ReentrantReadWriteLock();
     }
 
     /**
@@ -32,11 +37,16 @@ public class Navigator implements ICollectionManager {
      */
     @Override
     public String info() {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Время инициализации коллекции: ").append(routeBook.getInitializationTime().toString()).append('\n');
-        stringBuilder.append("Количество элементов в коллекции: ").append(routeBook.size()).append('\n');
-        stringBuilder.append("Тип коллекции: ").append(routeBook.getCollectionClass().getName());
-        return stringBuilder.toString();
+        lock.readLock().lock();
+        try {
+            StringBuilder stringBuilder = new StringBuilder( );
+            stringBuilder.append("Время инициализации коллекции: ").append(routeBook.getInitializationTime( ).toString( )).append('\n');
+            stringBuilder.append("Количество элементов в коллекции: ").append(routeBook.size( )).append('\n');
+            stringBuilder.append("Тип коллекции: ").append(routeBook.getCollectionClass( ).getName( ));
+            return stringBuilder.toString( );
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     /**
@@ -46,7 +56,12 @@ public class Navigator implements ICollectionManager {
      */
     @Override
     public void add(Route route) {
-        routeBook.add(route);
+        lock.writeLock().lock();
+        try {
+            routeBook.add(route);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     /**
@@ -54,7 +69,12 @@ public class Navigator implements ICollectionManager {
      */
     @Override
     public void clear() {
-        routeBook.clear();
+        lock.writeLock().lock();
+        try {
+            routeBook.clear( );
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     /**
@@ -64,12 +84,17 @@ public class Navigator implements ICollectionManager {
      */
     @Override
     public boolean removeById(long id) {
-        List<Route> routes = routeBook.toList().stream().filter(x -> x.getId() == id).collect(Collectors.toList());
-        if(!routes.isEmpty()){
-            routes.forEach(routeBook::remove);
-            return true;
+        lock.writeLock().lock();
+        try {
+            List<Route> routes = routeBook.toList( ).stream( ).filter(x -> x.getId( ) == id).collect(Collectors.toList( ));
+            if (!routes.isEmpty( )) {
+                routes.forEach(routeBook::remove);
+                return true;
+            }
+            return false;
+        } finally {
+            lock.writeLock().unlock();
         }
-        return false;
     }
     /**
      * Возвращает все элементы коллекции.
@@ -77,7 +102,12 @@ public class Navigator implements ICollectionManager {
      */
     @Override
     public String show() {
-        return Stream.builder().add("Элементов в коллекции: " + routeBook.size()).add(routeBook.toList().stream().map(x -> x.toString()).collect(Collectors.joining("\n"))).build().map(x -> x.toString()).collect(Collectors.joining("\n"));
+        lock.readLock().lock();
+        try {
+            return Stream.builder( ).add("Элементов в коллекции: " + routeBook.size( )).add(routeBook.toList( ).stream( ).map(x -> x.toString( )).collect(Collectors.joining("\n"))).build( ).map(x -> x.toString( )).collect(Collectors.joining("\n"));
+        } finally {
+            lock.readLock().unlock();
+        }
     }
     /**
      * Генерирует новый id
@@ -87,16 +117,26 @@ public class Navigator implements ICollectionManager {
      */
     @Override
     public boolean updateId(long id, Route route) {
-        if (!removeById(id)) return false;
-        routeBook.add(id,route);
-        return true;
+        lock.writeLock().lock();
+        try {
+            if (!removeById(id)) return false;
+            routeBook.add(id, route);
+            return true;
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
     /**
      * Метод выводит сумму значений поля distance для всех элементов коллекции
      */
     @Override
     public Float sumOfDistance() {
-        return routeBook.toList().stream().reduce(0f,(x,y) -> x + y.getDistance(),(x,y)-> x + y);
+        lock.readLock().lock();
+        try {
+            return routeBook.toList( ).stream( ).reduce(0f, (x, y) -> x + y.getDistance( ), (x, y) -> x + y);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     /**
@@ -106,20 +146,25 @@ public class Navigator implements ICollectionManager {
      */
     @Override
     public int size() {
-        return routeBook.size();
+        lock.readLock().lock();
+        try {
+            return routeBook.size( );
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
-    @Override
-    public void save(String path) throws JsonSyntaxException, NullPointerException, FileNotFoundException, NoPermissionsException, IOException {
-        JsonSerialization jsonSerialization = new JsonSerialization();
-        jsonSerialization.saveCollectionToFile(routeBook, path);
-    }
+//    @Override
+//    public void save(String path) throws JsonSyntaxException, NullPointerException, FileNotFoundException, NoPermissionsException, IOException {
+//        JsonSerialization jsonSerialization = new JsonSerialization();
+//        jsonSerialization.saveCollectionToFile(routeBook, path);
+//    }
 
-    @Override
-    public void load(String path) throws JsonSyntaxException, NullPointerException, FileNotFoundException, NoPermissionsException, IOException {
-        JsonDeserialization jsonDeserialization = new JsonDeserialization();
-        jsonDeserialization.loadCollectionFromFile(routeBook, path);
-    }
+//    @Override
+//    public void load(String path) throws JsonSyntaxException, NullPointerException, FileNotFoundException, NoPermissionsException, IOException {
+//        JsonDeserialization jsonDeserialization = new JsonDeserialization();
+//        jsonDeserialization.loadCollectionFromFile(routeBook, path);
+//    }
 
     /**
      * Метод сортирующий коллекцию обьъектов класса Route(маршрутов)
@@ -147,7 +192,12 @@ public class Navigator implements ICollectionManager {
      */
     @Override
     public List<Route> filterLessThanDistance(Float distance) {
-        return routeBook.toList().stream().filter(x -> x.getDistance() < distance).collect(Collectors.toList());
+        lock.readLock().lock();
+        try {
+            return routeBook.toList( ).stream( ).filter(x -> x.getDistance( ) < distance).collect(Collectors.toList( ));
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     /**
@@ -157,7 +207,12 @@ public class Navigator implements ICollectionManager {
      */
     @Override
     public void removeGreater(Route route) {
-        routeBook.toList().stream().filter(x -> sort(route).indexOf(x) > sort(route).indexOf(route)).forEach(routeBook::remove);
+        lock.writeLock().lock();
+        try {
+            routeBook.toList( ).stream( ).filter(x -> sort(route).indexOf(x) > sort(route).indexOf(route)).forEach(routeBook::remove);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     /**
@@ -167,7 +222,12 @@ public class Navigator implements ICollectionManager {
      */
     @Override
     public void removeLower(Route route) {
-        routeBook.toList().stream().filter(x -> sort(route).indexOf(x) < sort(route).indexOf(route)).forEach(routeBook::remove);
+        lock.writeLock().lock();
+        try {
+            routeBook.toList( ).stream( ).filter(x -> sort(route).indexOf(x) < sort(route).indexOf(route)).forEach(routeBook::remove);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     /**
@@ -175,10 +235,15 @@ public class Navigator implements ICollectionManager {
      */
     @Override
     public String printAscending() {
-        if (sort().size() == 0) {
-            return "Коллекция пуста";
-        } else {
-            return sort().stream().map(x -> x.toString()).collect(Collectors.joining("\n"));
+        lock.readLock().lock();
+        try {
+            if (sort( ).size( ) == 0) {
+                return "Коллекция пуста";
+            } else {
+                return sort( ).stream( ).map(x -> x.toString( )).collect(Collectors.joining("\n"));
+            }
+        } finally {
+            lock.readLock().unlock();
         }
 
     }

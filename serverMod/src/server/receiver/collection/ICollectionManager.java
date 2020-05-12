@@ -42,7 +42,7 @@ public interface ICollectionManager {
 
     List<Route> sort ();
 
-    void save (String path) throws JsonSyntaxException, NullPointerException, FileNotFoundException, NoPermissionsException, IOException;
+//    void save (String path) throws JsonSyntaxException, NullPointerException, FileNotFoundException, NoPermissionsException, IOException;
 
-    void load (String path) throws JsonSyntaxException, NullPointerException, FileNotFoundException, NoPermissionsException, IOException;
+//    void load (String path) throws JsonSyntaxException, NullPointerException, FileNotFoundException, NoPermissionsException, IOException;
 }
