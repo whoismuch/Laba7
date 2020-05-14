@@ -9,5 +9,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="commonMod" />
     <orderEntry type="library" name="com.google.code.gson:gson:2.8.5" level="project" />
+    <orderEntry type="library" name="postgresql-42.2.12" level="project" />
   </component>
 </module>

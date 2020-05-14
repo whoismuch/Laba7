@@ -11,9 +11,13 @@ import java.net.Socket;
 public class ServerConnection implements Runnable {
 
     private Socket incoming;
+    private DataBase db;
+    private GetFromClient getFromClient;
+    private SendToClient sendToClient;
 
-    public ServerConnection (Socket incoming) {
+    public ServerConnection (Socket incoming, DataBase db) {
         this.incoming = incoming;
+        this.db = db;
     }
 
 
@@ -28,6 +32,10 @@ public class ServerConnection implements Runnable {
         GetFromClient getFromClient = new GetFromClient(incoming);
         SendToClient sendToClient = new SendToClient(incoming);
 
+        this.getFromClient = getFromClient;
+        this.sendToClient = sendToClient;
+
+        passwordProcessing();
 
         sendToClient.send(driver.getAvailable( ));
 
@@ -43,4 +51,19 @@ public class ServerConnection implements Runnable {
             e.printStackTrace( );
         }
     }
+
+    public void passwordProcessing() {
+        String message = getFromClient.get().toString();
+        String username = message.substring(0, message.indexOf(" "));
+        String password = message.substring(message.indexOf(" "), message.length()-1);
+
+        String authenticationResult = db.authentication(username, password);
+
+        sendToClient.send(authenticationResult);
+        if (authenticationResult.equals("Упс...Если вы ранее регистрировались под этим логином, то указанный вами пароль неверен:( \n Если же вы регистрируетесь впервые, вам стотит выбрать другой логин")) {
+            passwordProcessing();
+        }
+
+    }
+
 }

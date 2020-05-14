@@ -22,21 +22,22 @@ public class ServerApp {
 
         try {
             Scanner scanner = new Scanner(System.in);
-            System.out.println("Введите порт: ");
+            System.out.print("Введите порт: ");
 
             int port = Integer.parseInt(scanner.nextLine( ));
             SocketAddress address = new InetSocketAddress(port);
 
+            DataBase db = new DataBase();
+
             System.out.print("Сервер начал слушать клиента " + "\nПорт " + port +
                     " / Адрес " + InetAddress.getLocalHost( ) + ".\nОжидаем подключения клиента\n ");
-
             while (true) {
                 try (ServerSocketChannel ss = ServerSocketChannel.open( )) {
                     ss.bind(address);
 
                     Socket incoming = ss.accept( ).socket( );
                     System.out.println(incoming + " подключился к серверу.");
-                    executeIt.execute(new ServerConnection(incoming));
+                    executeIt.execute(new ServerConnection(incoming, db));
 
 
                 } catch (UnknownHostException | NumberFormatException ex) {

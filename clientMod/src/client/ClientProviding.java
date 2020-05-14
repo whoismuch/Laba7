@@ -22,6 +22,7 @@ public class ClientProviding {
     private Selector selector;
     private String commandname = "check";
     private String arg;
+    private SocketChannel outcomingchannel;
 
 
     public ClientProviding ( ) {
@@ -39,11 +40,14 @@ public class ClientProviding {
             SocketAddress outcoming = new InetSocketAddress(userManager.readString("Введите адрес: ", false), Integer.parseInt(userManager.readString("Введите порт: ", false)));
             outcomingchannel.connect(outcoming);
 
+            this.outcomingchannel = outcomingchannel;
             dataExchangeWithServer = new DataExchangeWithServer(outcomingchannel);
 
             selector = Selector.open( );
             outcomingchannel.configureBlocking(false);
             outcomingchannel.register(selector, SelectionKey.OP_READ);
+
+            authentication();
 
             selector.select( );
             userManager.setAvailable((HashMap) dataExchangeWithServer.getFromServer( ));
@@ -128,7 +132,6 @@ public class ClientProviding {
         selector.select( );
         String s = dataExchangeWithServer.getFromServer( ).toString( );
         userManager.writeln(s);
-//        if (s.equals("Завершаю работу...")) exit();
 
     }
 
@@ -158,6 +161,27 @@ public class ClientProviding {
                     userManager.write("Введите корректный ответ.");
             }
         }
+    }
+
+    public void authentication() throws IOException {
+        String username = userManager.readString("Введите логин: ", false);
+        String password = userManager.readString("Введите пароль: ", false);
+        if (username.contains(" ") || password.contains(" "))
+        {
+            userManager.writeln("Логин и пароль не должны содержать пробелы");
+            authentication();
+        }
+        dataExchangeWithServer.sendToServer(username + " " + password);
+
+        selector.select();
+        String s = dataExchangeWithServer.getFromServer().toString();
+
+        userManager.writeln(s);
+
+        if (s.equals("Упс...Если вы ранее регистрировались под этим логином, то указанный вами пароль неверен:( \n Если же вы регистрируетесь впервые, вам стотит выбрать другой логин")) {
+            authentication();
+        }
+
     }
 }
 
