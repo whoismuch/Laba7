@@ -25,8 +25,9 @@ public class Driver {
      */
     private HashMap<String, Command> man = new HashMap( );
     private HashMap<String, String> available = new HashMap<>();
+    private String username;
 
-    public Driver ( ) {
+    public Driver (String username) {
         this.arrayDeque = new ArrayDeque<>( );
         registerCommand(new AddCommand( ));
         registerCommand(new ClearCommand( ));
@@ -46,6 +47,7 @@ public class Driver {
         registerCommand(new SumOfDistanceCommand( ));
         registerCommand(new UpdateIdCommand( ));
 
+        this.username = username;
     }
 
 
@@ -113,4 +115,8 @@ public class Driver {
 //    public void save(SendToClient sendToClient, ICollectionManager icm, String path) {
 //        (new SaveCommand()).execute(sendToClient, icm, path, null, this);
 //    }
+
+    public String getUsername ( ) {
+        return username;
+    }
 }

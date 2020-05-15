@@ -15,7 +15,7 @@ public class RouteBook implements ICollection<Route> {
     /**
      * Поле коллекция объектов класса Route
      */
-    public static LinkedHashSet<Route> routes = new LinkedHashSet<>();
+    public LinkedHashSet<Route> routes = new LinkedHashSet<>();
     /**
      * Поле уникальный номер маршрута
      */
@@ -40,6 +40,12 @@ public class RouteBook implements ICollection<Route> {
         obj.setId(this.giveMeId());
         routes.add(obj);
     }
+
+    @Override
+    public Long getId ( ) {
+        return id;
+    }
+
     /**
      * Добавляет объект с определенным id
      *
@@ -47,7 +53,7 @@ public class RouteBook implements ICollection<Route> {
      * @param obj объект
      */
     @Override
-    public void add(long id, Route obj) {
+    public void add(Long id, Route obj) {
         obj.setId(id);
         routes.add(obj);
     }
@@ -101,4 +107,13 @@ public class RouteBook implements ICollection<Route> {
         return routes.getClass();
     }
 
+    @Override
+    public LinkedHashSet<Route> getCollection ( ) {
+        return routes;
+    }
+
+    @Override
+    public void setId (Long id) {
+        this.id = id;
+    }
 }

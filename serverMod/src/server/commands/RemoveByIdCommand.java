@@ -32,7 +32,7 @@ public class RemoveByIdCommand implements Command {
     @Override
     public void execute(SendToClient sendToClient, ICollectionManager icm, String arg, Route route, Driver driver) {
         Long id = Long.parseLong(arg);
-        sendToClient.send(icm.removeById(id)? "Элемент с id : " + id + " удален!": "Элемент не найден");
+        sendToClient.send(icm.removeById(id, driver.getUsername())? "Элемент с id : " + id + " удален!": "Элемент не найден");
     }
 
     /**

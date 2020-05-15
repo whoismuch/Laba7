@@ -1,6 +1,5 @@
 package server.armory;
 
-import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import common.command.CommandDescription;
 import server.receiver.collection.Navigator;
 import server.receiver.collection.RouteBook;
@@ -14,20 +13,20 @@ public class ServerConnection implements Runnable {
     private DataBase db;
     private GetFromClient getFromClient;
     private SendToClient sendToClient;
+    private String username;
+    private RouteBook routeBook;
+    private Navigator navigator;
 
-    public ServerConnection (Socket incoming, DataBase db) {
+    public ServerConnection (Socket incoming, DataBase db, RouteBook routeBook, Navigator navigator) {
         this.incoming = incoming;
         this.db = db;
+        this.routeBook = routeBook;
+        this.navigator = navigator;
     }
 
 
     @Override
     public void run ( ) {
-
-        RouteBook routeBook = new RouteBook();
-        Navigator navigator = new Navigator(routeBook);
-
-        Driver driver = new Driver();
 
         GetFromClient getFromClient = new GetFromClient(incoming);
         SendToClient sendToClient = new SendToClient(incoming);
@@ -35,7 +34,9 @@ public class ServerConnection implements Runnable {
         this.getFromClient = getFromClient;
         this.sendToClient = sendToClient;
 
-        passwordProcessing();
+        checkPassword();
+
+        Driver driver = new Driver(username);
 
         sendToClient.send(driver.getAvailable( ));
 
@@ -52,18 +53,19 @@ public class ServerConnection implements Runnable {
         }
     }
 
-    public void passwordProcessing() {
+    public void checkPassword() {
         String message = getFromClient.get().toString();
         String username = message.substring(0, message.indexOf(" "));
-        String password = message.substring(message.indexOf(" "), message.length()-1);
+        String password = message.substring(message.indexOf(" ") + 1);
+
+        this.username = username;
 
         String authenticationResult = db.authentication(username, password);
 
         sendToClient.send(authenticationResult);
         if (authenticationResult.equals("Упс...Если вы ранее регистрировались под этим логином, то указанный вами пароль неверен:( \n Если же вы регистрируетесь впервые, вам стотит выбрать другой логин")) {
-            passwordProcessing();
+            checkPassword();
         }
-
     }
 
 }

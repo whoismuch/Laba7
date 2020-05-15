@@ -14,11 +14,11 @@ import java.util.List;
 public interface ICollectionManager {
     String info ( );
 
-    void add (Route route);
+    void add (Route route, String username);
 
-    void clear ( );
+    void clear (String username);
 
-    boolean removeById (long id);
+    boolean removeById (long id, String username);
 
     String show ( );
 
@@ -26,13 +26,13 @@ public interface ICollectionManager {
 
 
 
-    void removeGreater (Route route);
+    void removeGreater (Route route, String username);
 
-    void removeLower (Route route);
+    void removeLower (Route route, String username);
 
     public String printAscending ( );
 
-    boolean updateId (long id, Route route);
+    boolean updateId (long id, Route route, String username);
 
     Float sumOfDistance ( );
 
@@ -41,6 +41,10 @@ public interface ICollectionManager {
     List<Route> sort (Route route);
 
     List<Route> sort ();
+
+    void load();
+
+    void loadBegin();
 
 //    void save (String path) throws JsonSyntaxException, NullPointerException, FileNotFoundException, NoPermissionsException, IOException;
 

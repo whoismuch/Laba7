@@ -22,8 +22,8 @@ public class ClientProviding {
     private Selector selector;
     private String commandname = "check";
     private String arg;
-    private SocketChannel outcomingchannel;
-
+    private String username;
+    private String password;
 
     public ClientProviding ( ) {
         Scanner scanner = new Scanner(System.in);
@@ -40,7 +40,6 @@ public class ClientProviding {
             SocketAddress outcoming = new InetSocketAddress(userManager.readString("Введите адрес: ", false), Integer.parseInt(userManager.readString("Введите порт: ", false)));
             outcomingchannel.connect(outcoming);
 
-            this.outcomingchannel = outcomingchannel;
             dataExchangeWithServer = new DataExchangeWithServer(outcomingchannel);
 
             selector = Selector.open( );
@@ -171,6 +170,8 @@ public class ClientProviding {
             userManager.writeln("Логин и пароль не должны содержать пробелы");
             authentication();
         }
+        this.username = username;
+        this.password = password;
         dataExchangeWithServer.sendToServer(username + " " + password);
 
         selector.select();

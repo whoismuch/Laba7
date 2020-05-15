@@ -1,6 +1,7 @@
 package server.receiver.collection;
 
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
@@ -10,7 +11,7 @@ import java.util.List;
  */
 public interface ICollection <T> {
     void add (T obj);
-    void add (long id, T obj);
+    void add (Long id, T obj);
 
     Long giveMeId ( );
 
@@ -25,5 +26,11 @@ public interface ICollection <T> {
     Date getInitializationTime ( );
 
     Class<?> getCollectionClass ( );
+
+    LinkedHashSet<T> getCollection();
+
+    void setId(Long id);
+
+    Long getId();
 
 }

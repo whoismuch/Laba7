@@ -28,6 +28,9 @@ public class ServerApp {
             SocketAddress address = new InetSocketAddress(port);
 
             DataBase db = new DataBase();
+            RouteBook routeBook = new RouteBook();
+            Navigator navigator = new Navigator(routeBook, db);
+            navigator.loadBegin();
 
             System.out.print("Сервер начал слушать клиента " + "\nПорт " + port +
                     " / Адрес " + InetAddress.getLocalHost( ) + ".\nОжидаем подключения клиента\n ");
@@ -37,7 +40,7 @@ public class ServerApp {
 
                     Socket incoming = ss.accept( ).socket( );
                     System.out.println(incoming + " подключился к серверу.");
-                    executeIt.execute(new ServerConnection(incoming, db));
+                    executeIt.execute(new ServerConnection(incoming, db, routeBook, navigator));
 
 
                 } catch (UnknownHostException | NumberFormatException ex) {

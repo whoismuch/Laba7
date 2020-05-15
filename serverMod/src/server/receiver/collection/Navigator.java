@@ -1,15 +1,10 @@
 package server.receiver.collection;
 
 
-import com.google.gson.JsonSyntaxException;
+import server.armory.DataBase;
 import server.comparators.*;
-import common.exceptions.NoPermissionsException;
 import common.generatedClasses.Route;
-import server.json.JsonDeserialization;
-import server.json.JsonSerialization;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -24,10 +19,12 @@ public class Navigator implements ICollectionManager {
 
     private ICollection<Route> routeBook;
     private ReadWriteLock lock;
+    private DataBase db;
 
-    public Navigator(ICollection<Route> routeBook) {
+    public Navigator(ICollection<Route> routeBook, DataBase db) {
         this.routeBook = routeBook;
         lock = new ReentrantReadWriteLock();
+        this.db = db;
     }
 
     /**
@@ -55,10 +52,10 @@ public class Navigator implements ICollectionManager {
      * @param route маршрут, которая будет добавлена.
      */
     @Override
-    public void add(Route route) {
+    public void add(Route route, String username) {
         lock.writeLock().lock();
         try {
-            routeBook.add(route);
+            if (db.add(route, username)) routeBook.add(route);
         } finally {
             lock.writeLock().unlock();
         }
@@ -68,10 +65,13 @@ public class Navigator implements ICollectionManager {
      * Очищает коллекцию.
      */
     @Override
-    public void clear() {
+    public void clear(String username) {
         lock.writeLock().lock();
         try {
-            routeBook.clear( );
+            db.deleteRoutes(username);
+            routeBook.clear();
+            loadBegin();
+            System.out.println(routeBook.getId());
         } finally {
             lock.writeLock().unlock();
         }
@@ -83,12 +83,12 @@ public class Navigator implements ICollectionManager {
      * @return true - если элемент существовал и false - в ином случае
      */
     @Override
-    public boolean removeById(long id) {
+    public boolean removeById(long id, String username) {
         lock.writeLock().lock();
         try {
-            List<Route> routes = routeBook.toList( ).stream( ).filter(x -> x.getId( ) == id).collect(Collectors.toList( ));
-            if (!routes.isEmpty( )) {
-                routes.forEach(routeBook::remove);
+            if (db.removeById(id, username) > 0) {
+                routeBook.clear();
+                load();
                 return true;
             }
             return false;
@@ -116,12 +116,15 @@ public class Navigator implements ICollectionManager {
      * @return true - если объект был найден и обновлён, false -  в ином случае
      */
     @Override
-    public boolean updateId(long id, Route route) {
+    public boolean updateId(long id, Route route, String username) {
         lock.writeLock().lock();
         try {
-            if (!removeById(id)) return false;
-            routeBook.add(id, route);
-            return true;
+            if (db.updateId(id,route, username)) {
+                routeBook.clear();
+                load();
+                return true;
+            }
+            return false;
         } finally {
             lock.writeLock().unlock();
         }
@@ -206,10 +209,12 @@ public class Navigator implements ICollectionManager {
      * @param route эемент для сравнения
      */
     @Override
-    public void removeGreater(Route route) {
+    public void removeGreater(Route route, String username) {
         lock.writeLock().lock();
         try {
-            routeBook.toList( ).stream( ).filter(x -> sort(route).indexOf(x) > sort(route).indexOf(route)).forEach(routeBook::remove);
+            routeBook.toList( ).stream( ).filter(x -> sort(route).indexOf(x) > sort(route).indexOf(route)).forEach(x -> db.removeById(x.getId(), username));
+            routeBook.clear();
+            load();
         } finally {
             lock.writeLock().unlock();
         }
@@ -221,10 +226,12 @@ public class Navigator implements ICollectionManager {
      * @param route эемент для сравнения
      */
     @Override
-    public void removeLower(Route route) {
+    public void removeLower(Route route, String username) {
         lock.writeLock().lock();
         try {
-            routeBook.toList( ).stream( ).filter(x -> sort(route).indexOf(x) < sort(route).indexOf(route)).forEach(routeBook::remove);
+            routeBook.toList( ).stream( ).filter(x -> sort(route).indexOf(x) < sort(route).indexOf(route)).forEach(x -> db.removeById(x.getId(), username));
+            routeBook.clear();
+            load();
         } finally {
             lock.writeLock().unlock();
         }
@@ -248,7 +255,17 @@ public class Navigator implements ICollectionManager {
 
     }
 
-    /**
-     * Метод удаляет элемент коллекции, id которого равен заданному
-     */
+    @Override
+    public void load() {
+        if (db.load(routeBook.getCollection()).equals(0)) {
+            System.out.println(123);
+            routeBook.setId(0L);
+        }
+        System.out.println(routeBook.getId());
+    }
+
+    @Override
+    public void loadBegin() {
+        routeBook.setId(db.load(routeBook.getCollection()));
+    }
 }
