@@ -71,8 +71,6 @@ public class DataBase {
 
     public String authentication (String username, String expectedPassword) {
         try {
-            System.out.println(username + username.length());
-            System.out.println(expectedPassword + expectedPassword.length());
             PreparedStatement ps = connection.prepareStatement(checkUser);
             ps.setString(1, username);
             ResultSet rs = ps.executeQuery( );
@@ -80,20 +78,28 @@ public class DataBase {
             if (rs.next( )) {
                 password = rs.getString(2);
             }
-            if (password == null) {
+            return password;
 
+        } catch (SQLException ex) {
+            ex.printStackTrace( );
+            return "";
+        }
+    }
+
+    public String registration (String username, String expectedPassword) {
+        try {
+            String password = authentication(username, expectedPassword);
+            if (password != null)
+                return "Пользователь с таким логином уже зарегистрирован. Может, вам стоит авторизоваться?";
+            else {
                 PreparedStatement ps2 = connection.prepareStatement(addUser);
                 ps2.setString(1, username);
                 ps2.setString(2, getHashPassword(expectedPassword));
 
-                System.out.println(username + " " + getHashPassword(expectedPassword));
 
                 ps2.executeUpdate( );
 
                 return "Вы успешно зарегистрировались";
-            } else {
-                if (password.equals(getHashPassword(expectedPassword))) return "Вы успешно авторизовались";
-                return "Упс...Если вы ранее регистрировались под этим логином, то указанный вами пароль неверен:( \n Если же вы регистрируетесь впервые, вам стотит выбрать другой логин";
             }
         } catch (SQLException ex) {
             ex.printStackTrace( );
@@ -108,6 +114,19 @@ public class DataBase {
             ex.printStackTrace( );
             return "";
         }
+    }
+
+    public String authorization (String username, String expectedPassword) {
+            String password = authentication(username, expectedPassword);
+            if (password == null) return "Пользователь с таким логином не зарегистрирован";
+        try {
+            if (password.equals(getHashPassword(expectedPassword))) return "Вы успешно авторизовались";
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace( );
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace( );
+        }
+        return "Вы ввели неправильный пароль";
     }
 
     public String getHashPassword (String password) throws UnsupportedEncodingException, NoSuchAlgorithmException {
@@ -206,7 +225,6 @@ public class DataBase {
 
 
     public int removeById (long id, String username) {
-        System.out.println(id);
         int count = 0;
         try {
             PreparedStatement ps = connection.prepareStatement(deleteRouteById);
@@ -216,14 +234,12 @@ public class DataBase {
         } catch (SQLException e) {
             e.printStackTrace( );
         }
-        System.out.println(count);
         return count;
 
     }
 
     public boolean updateId (long id, Route route, String username) {
         int a = removeById(id, username);
-        System.out.println("remove " + a );
         if (a > 0 ) {
             try {
                 PreparedStatement ps = connection.prepareStatement(addRouteWithId);

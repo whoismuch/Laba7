@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class SendToClient {
 
@@ -23,8 +24,8 @@ public class SendToClient {
             incoming.getOutputStream().write(outcoming);
             send.flush();
             baos.flush();
-        } catch (IOException e) {
-            e.printStackTrace( );
+        } catch (IOException ex) {
+            System.out.println("Клиент решил покинуть нас" );
         }
     }
 }

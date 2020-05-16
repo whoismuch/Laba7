@@ -421,6 +421,28 @@ public class UserManager {
         return result;
     }
 
+    public String readChoice(String message, boolean nullable) throws NoSuchElementException {
+        String result = null;
+        while (manualInput && !nullable && result == null) {
+            if (manualInput) {
+                write(message);
+            }
+            result = scanner.nextLine();
+            result= result.trim();
+            if (result == null) {
+                writeln("Введите не пустую строку");
+            }
+            if (!result.equals("Регистрация") && !result.equals("Авторизация")) {
+                writeln("Введите коректный ответ");
+                readChoice(message, nullable);
+            }
+        }
+        if (!manualInput && result == null) {
+            throw new NoCorrectInputException("Это значение не может быть null.");
+        }
+        return result;
+    }
+
     public HashMap<String, String> getAvailable ( ) {
         return available;
     }

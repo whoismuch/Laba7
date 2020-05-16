@@ -6,6 +6,7 @@ import server.receiver.collection.RouteBook;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class ServerConnection implements Runnable {
 
@@ -16,6 +17,8 @@ public class ServerConnection implements Runnable {
     private String username;
     private RouteBook routeBook;
     private Navigator navigator;
+    private boolean everythingIsAlright = true;
+    private Driver driver;
 
     public ServerConnection (Socket incoming, DataBase db, RouteBook routeBook, Navigator navigator) {
         this.incoming = incoming;
@@ -37,34 +40,60 @@ public class ServerConnection implements Runnable {
         checkPassword();
 
         Driver driver = new Driver(username);
+        this.driver = driver;
 
         sendToClient.send(driver.getAvailable( ));
 
-        while (true) {
-            CommandDescription command = (CommandDescription) getFromClient.get( );
-            driver.execute(sendToClient, navigator, command.getName( ), command.getArg( ), command.getRoute( ), driver);
-            if (command.getName().equals("exit")) break;
-        }
+        executeCommands();
 
-        try {
-            incoming.close();
-        } catch (IOException e) {
-            e.printStackTrace( );
-        }
+        close();
+    }
+
+    public void executeCommands() {
+       try {
+           while (true) {
+               if (!everythingIsAlright) break;
+               CommandDescription command = (CommandDescription) getFromClient.get( );
+               driver.execute(sendToClient, navigator, command.getName( ), command.getArg( ), command.getRoute( ), driver);
+               if (command.getName( ).equals("exit")) break;
+           }
+       } catch (ClassCastException ex) {
+           everythingIsAlright = false;
+           executeCommands();
+       }
+    }
+    public void close () {
+            try {
+                incoming.close();
+            } catch (IOException e) {
+                e.printStackTrace( );
+            }
     }
 
     public void checkPassword() {
-        String message = getFromClient.get().toString();
-        String username = message.substring(0, message.indexOf(" "));
-        String password = message.substring(message.indexOf(" ") + 1);
+        try {
+            String message = getFromClient.get( ).toString( );
+            String[] mas = message.split(" ");
+            String choice = mas[0];
+            String username = mas[1];
+            String password = mas[2];
 
-        this.username = username;
+            this.username = username;
 
-        String authenticationResult = db.authentication(username, password);
+            String authenticationResult = null;
 
-        sendToClient.send(authenticationResult);
-        if (authenticationResult.equals("Упс...Если вы ранее регистрировались под этим логином, то указанный вами пароль неверен:( \n Если же вы регистрируетесь впервые, вам стотит выбрать другой логин")) {
-            checkPassword();
+            if (choice.equals("Регистрация")) {
+                authenticationResult = db.registration(username, password);
+            }
+            if (choice.equals("Авторизация")) {
+                authenticationResult = db.authorization(username, password);
+            }
+            sendToClient.send(authenticationResult);
+            if (authenticationResult.equals("Пользователь с таким логином не зарегистрирован") || authenticationResult.equals("Вы ввели неправильный пароль") || authenticationResult.equals("Пользователь с таким логином уже зарегистрирован. Может, вам стоит авторизоваться?")) {
+                checkPassword( );
+            }
+        } catch (NullPointerException ex) {
+            everythingIsAlright = false;
         }
     }
 

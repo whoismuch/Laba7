@@ -4,6 +4,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class GetFromClient {
 
@@ -23,7 +24,7 @@ public class GetFromClient {
             System.out.println("Клиент решил внезапно покинуть нас");
             return obj;
         } catch (IOException e) {
-            e.printStackTrace( );
+            System.out.println("Клиент решил покинуть нас" );
             return null;
         } catch (ClassNotFoundException e) {
             e.printStackTrace( );

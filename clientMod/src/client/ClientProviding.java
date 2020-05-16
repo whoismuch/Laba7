@@ -163,6 +163,7 @@ public class ClientProviding {
     }
 
     public void authentication() throws IOException {
+        String choice = userManager.readChoice("Вас интересует Регистрация или Авторизация? Введите корректный ответ: ", false);
         String username = userManager.readString("Введите логин: ", false);
         String password = userManager.readString("Введите пароль: ", false);
         if (username.contains(" ") || password.contains(" "))
@@ -172,16 +173,17 @@ public class ClientProviding {
         }
         this.username = username;
         this.password = password;
-        dataExchangeWithServer.sendToServer(username + " " + password);
+        dataExchangeWithServer.sendToServer(choice + " " + username + " " + password);
 
         selector.select();
         String s = dataExchangeWithServer.getFromServer().toString();
 
         userManager.writeln(s);
 
-        if (s.equals("Упс...Если вы ранее регистрировались под этим логином, то указанный вами пароль неверен:( \n Если же вы регистрируетесь впервые, вам стотит выбрать другой логин")) {
+        if (s.equals("Пользователь с таким логином не зарегистрирован") || s.equals("Вы ввели неправильный пароль") || s.equals("Пользователь с таким логином уже зарегистрирован. Может, вам стоит авторизоваться?")) {
             authentication();
         }
+
 
     }
 }
