@@ -25,7 +25,7 @@ public class SendToClient {
             send.flush();
             baos.flush();
         } catch (IOException ex) {
-            System.out.println("Клиент решил покинуть нас" );
+            System.out.println("Клиент решил внезапно покинуть нас" );
         }
     }
 }

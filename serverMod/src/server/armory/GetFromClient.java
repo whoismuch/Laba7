@@ -24,7 +24,6 @@ public class GetFromClient {
             System.out.println("Клиент решил внезапно покинуть нас");
             return obj;
         } catch (IOException e) {
-            System.out.println("Клиент решил покинуть нас" );
             return null;
         } catch (ClassNotFoundException e) {
             e.printStackTrace( );

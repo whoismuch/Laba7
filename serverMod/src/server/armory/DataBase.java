@@ -46,7 +46,7 @@ public class DataBase {
     public void startInizialization ( ) {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Введите, пожалуйста, порт для подключения к БДэшечке: ");
-        DB_CONNECTION = "jdbc:postgresql://localhost:" + scanner.nextLine( ).trim( ) + "/studs";
+        DB_CONNECTION = "jdbc:postgresql://pg:" + scanner.nextLine( ).trim( ) + "/studs";
         System.out.print("Введите, пожалуйста, имя пользователя: ");
         DB_USER = scanner.nextLine( ).trim( );
         System.out.print("Введите, пожалуйста, пароль: ");

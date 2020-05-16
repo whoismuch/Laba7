@@ -57,7 +57,7 @@ public class ServerConnection implements Runnable {
                driver.execute(sendToClient, navigator, command.getName( ), command.getArg( ), command.getRoute( ), driver);
                if (command.getName( ).equals("exit")) break;
            }
-       } catch (ClassCastException ex) {
+       } catch (ClassCastException | NullPointerException ex) {
            everythingIsAlright = false;
            executeCommands();
        }

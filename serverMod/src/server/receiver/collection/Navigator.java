@@ -258,10 +258,8 @@ public class Navigator implements ICollectionManager {
     @Override
     public void load() {
         if (db.load(routeBook.getCollection()).equals(0)) {
-            System.out.println(123);
             routeBook.setId(0L);
         }
-        System.out.println(routeBook.getId());
     }
 
     @Override

@@ -37,7 +37,7 @@ public class RemoveGreaterCommand implements Command {
     @Override
     public void execute(SendToClient sendToClient, ICollectionManager icm, String arg, Route route, Driver driver) {
         icm.removeGreater(route, driver.getUsername());
-        sendToClient.send("Элементы, большие заданного, успешно удалены");
+        sendToClient.send("Элементы, большие заданного и принадлежащие вам, успешно удалены");
     }
 
 

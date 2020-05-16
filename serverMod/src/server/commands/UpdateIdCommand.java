@@ -35,7 +35,7 @@ public class UpdateIdCommand implements Command {
     @Override
     public void execute(SendToClient sendToClient, ICollectionManager icm, String arg, Route route, Driver driver) {
         Long id = Long.parseLong(arg);
-        sendToClient.send(icm.updateId(id,route, driver.getUsername())? "Объект с id: " + id + " обновлен" : "Элемент с введенным id не найден");
+        sendToClient.send(icm.updateId(id,route, driver.getUsername())? "Объект с id: " + id + " обновлен" : "Элемент с введенным id не найден и/или вам не принадлежит");
     }
 
     /**
