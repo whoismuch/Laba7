@@ -32,6 +32,8 @@ public class ExecuteScriptCommand implements Command {
 
     private String arg = "FileF";
 
+    private String result;
+
 
     @Override
     public String toString ( ) {
@@ -41,30 +43,12 @@ public class ExecuteScriptCommand implements Command {
     /**
      * Метод, передающий выполнение команды приемнику
      */
-//execute_script 1.txt
-//    @Override
-//    public void execute(UserManager userManager, ICollectionManager icm, String arg) {
-//        try {
-//            UserManager scriptInterface = new UserManager(new FileReader(s), new OutputStreamWriter(System.out), false);
-//            while (scriptInterface.hasNextLine()) {
-//                String line = scriptInterface.read();
-//                Driver.getLive().execute(scriptInterface, icm, line);
-//            }
-//            userManager.writeln("Скрипт выполнен");
-//        } catch (NoSuchElementException e) {
-//            userManager.writeln("Недостаточно введенных данных");
-//        } catch (NullPointerException e) {
-//            userManager.writeln("Файл пуст!");
-//        } catch (FileNotFoundException e) {
-//            userManager.writeln("Файла по указанному пути не существует!");
-//        } catch (IOException e) {
-//            userManager.writeln("Ошибка при рабтое с файлом");
-//        }
-//    }
+
 
     @Override
-    public void execute(SendToClient sendToClient, ICollectionManager icm, String arg, Route route, Driver driver) {
+    public String execute(ICollectionManager icm, String arg, Route route, Driver driver) {
         try {
+            result ="";
             CharArrayReader car = new CharArrayReader(arg.toCharArray());
             Scanner scanner = new Scanner(car);
             while (scanner.hasNextLine()) {
@@ -85,10 +69,11 @@ public class ExecuteScriptCommand implements Command {
 
                 }
 
-                driver.execute(sendToClient, icm, commandname, argue, route, driver);
+                result = driver.execute(icm, commandname, argue, route, driver) + "\n";
             }
+            return result;
         } catch (NullPointerException e) {
-            sendToClient.send("Скрипт выполнен");
+            return result + "\nСкрипт выполнен";
         }
     }
 

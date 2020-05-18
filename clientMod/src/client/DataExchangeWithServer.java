@@ -23,8 +23,8 @@ public class DataExchangeWithServer {
 
         ByteBuffer byteBuffer = ByteBuffer.wrap(outcoming);
 
-        int sent = 0;
-        while ((sent = outcomingchannel.write(byteBuffer)) > 0 ) ;
+        while ((outcomingchannel.write(byteBuffer)) > 0 ) ;
+
 
         byteBuffer.clear();
         baos.flush( );
@@ -43,7 +43,8 @@ public class DataExchangeWithServer {
             }
             ByteArrayInputStream bios = new ByteArrayInputStream(baos.toByteArray( ));
             ObjectInputStream ois = new ObjectInputStream(bios);
-            return ois.readObject( );
+            Object o = ois.readObject();
+            return o;
         } catch (ClassNotFoundException e) {
             System.out.println( );
             e.printStackTrace( );

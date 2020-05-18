@@ -33,9 +33,9 @@ public class RemoveLowerCommand implements Command {
     }
 
     @Override
-    public void execute(SendToClient sendToClient, ICollectionManager icm, String arg, Route route, Driver driver) {
+    public String execute(ICollectionManager icm, String arg, Route route, Driver driver) {
         icm.removeLower(route, driver.getUsername());
-        sendToClient.send("Элементы, меньшие заданного и принадлежащие вам, успешно удалены");
+        return ("Элементы, меньшие заданного и принадлежащие вам, успешно удалены");
     }
 
     /**

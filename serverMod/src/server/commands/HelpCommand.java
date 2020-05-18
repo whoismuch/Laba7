@@ -31,8 +31,8 @@ public class HelpCommand implements Command {
     }
 
     @Override
-    public void execute(SendToClient sendToClient, ICollectionManager icm, String arg, Route route, Driver driver) {
-        sendToClient.send(driver.getAllCommands().stream().map(x -> x.toString()).collect(Collectors.joining("\n")));
+    public String execute(ICollectionManager icm, String arg, Route route, Driver driver) {
+        return (driver.getAllCommands().stream().map(x -> x.toString()).collect(Collectors.joining("\n")));
     }
 
 

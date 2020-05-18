@@ -45,6 +45,8 @@ public class Route implements Comparable<Route>, Serializable {
      */
     private Float distance; //Поле не может быть null, Значение поля должно быть больше 1
 
+    private String username;
+
     /**
      * Конструктор - задает новый маршрут с заданными значениями
      *
@@ -165,6 +167,14 @@ public class Route implements Comparable<Route>, Serializable {
      */
     public Location getTo ( ) {
         return to;
+    }
+
+    public String getUsername ( ) {
+        return username;
+    }
+
+    public void setUsername (String username) {
+        this.username = username;
     }
 
     @Override

@@ -16,11 +16,9 @@ public interface Command {
 
     /**
      * Абстрактный метод для выполнения команды
-     * @param s
-     * @param sendToClient
      * @param icm
      */
-    void execute (SendToClient sendToClient, ICollectionManager icm, String arg, Route route, Driver driver);
+    String execute (ICollectionManager icm, String arg, Route route, Driver driver);
 
     /**
      * Абстрактный метод для получения описания команды

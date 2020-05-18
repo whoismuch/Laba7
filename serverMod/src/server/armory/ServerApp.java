@@ -17,14 +17,11 @@ public class ServerApp {
     public static void main (String[] args) {
         try {
             Scanner scanner = new Scanner(System.in);
-            System.out.print("Сколько клиентов вы собираетесь обслуживать одновременно?: ");
-            String a = scanner.nextLine().trim();
-            if (a.equals("")) throw new NumberFormatException();
-            ExecutorService executeIt = Executors.newFixedThreadPool(Integer.parseInt(a));
-
-            Runtime.getRuntime( ).addShutdownHook(new Thread(( ) -> {
-                executeIt.shutdown( );
-            }));
+//            System.out.print("Сколько клиентов вы собираетесь обслуживать одновременно?: ");
+//            String a = scanner.nextLine().trim();
+//            if (a.equals("")) throw new NumberFormatException();
+//
+//            ExecutorService executeIt = Executors.newFixedThreadPool(Integer.parseInt(a));
 
             System.out.print("Введите порт: ");
 
@@ -36,6 +33,12 @@ public class ServerApp {
             Navigator navigator = new Navigator(routeBook, db);
             navigator.loadBegin( );
 
+
+            Runtime.getRuntime( ).addShutdownHook(new Thread(( ) -> {
+//                executeIt.shutdown( );
+                db.theEnd();
+            }));
+
             System.out.print("Сервер начал слушать клиента " + "\nПорт " + port +
                     " / Адрес " + InetAddress.getLocalHost( ) + ".\nОжидаем подключения клиента\n ");
             while (true) {
@@ -44,7 +47,9 @@ public class ServerApp {
 
                     Socket incoming = ss.accept( ).socket( );
                     System.out.println(incoming + " подключился к серверу.");
-                    executeIt.execute(new ServerConnection(incoming, db, routeBook, navigator));
+                    Thread childTread = new Thread( new ServerConnection(incoming, db, routeBook, navigator));
+                    childTread.start();
+//                    executeIt.execute(new ServerConnection(incoming, db, routeBook, navigator));
 
 
                 } catch (UnknownHostException | NumberFormatException ex) {

@@ -37,12 +37,12 @@ public class AddCommand implements Command {
 
 
     @Override
-    public void execute(SendToClient sendToClient, ICollectionManager icm, String arg, Route route, Driver driver) {
+    public String execute(ICollectionManager icm, String arg, Route route, Driver driver) {
         try {
             icm.add(route, driver.getUsername());
-            sendToClient.send("Объект " + route.getName() + " успешно добавлен в коллекцию!");
+            return "Объект " + route.getName() + " успешно добавлен в коллекцию!";
         }catch (ClassCastException e){
-            sendToClient.send("Ошибка при создании класса");
+            return "Ошибка при создании класса";
         }
     }
 

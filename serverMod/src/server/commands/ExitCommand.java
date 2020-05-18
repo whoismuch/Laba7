@@ -35,8 +35,8 @@ public class ExitCommand implements Command {
      */
 
     @Override
-    public void execute(SendToClient sendToClient, ICollectionManager icm, String arg, Route route, Driver driver) {
-        sendToClient.send("Завершаю работу...");
+    public String execute(ICollectionManager icm, String arg, Route route, Driver driver) {
+        return "Завершаю работу...";
     }
 
 

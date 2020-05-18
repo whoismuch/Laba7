@@ -32,7 +32,7 @@ public class DataBase {
     String load = "SELECT * FROM ROUTES";
     String deleteRoutes = "DELETE FROM ROUTES WHERE username = ?;";
     String deleteRouteById = "DELETE FROM ROUTES WHERE username = ? AND id = ?;";
-    String seqFromBegin ="ALTER SEQUENCE id RESTART WITH 1;";
+    String seqFromBegin ="ALTER SEQUENCE id RESTART WITH ?;";
 
 
     public DataBase ( ) {
@@ -46,7 +46,7 @@ public class DataBase {
     public void startInizialization ( ) {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Введите, пожалуйста, порт для подключения к БДэшечке: ");
-        DB_CONNECTION = "jdbc:postgresql://pg:" + scanner.nextLine( ).trim( ) + "/studs";
+        DB_CONNECTION = "jdbc:postgresql://localhost:" + scanner.nextLine( ).trim( ) + "/studs";
         System.out.print("Введите, пожалуйста, имя пользователя: ");
         DB_USER = scanner.nextLine( ).trim( );
         System.out.print("Введите, пожалуйста, пароль: ");
@@ -155,7 +155,7 @@ public class DataBase {
             ps.setLong(11, route.getTo( ).getY( ));
             ps.setString(12, route.getTo( ).getName( ));
             ps.setFloat(13, route.getDistance( ));
-            ps.executeUpdate( );
+            if (ps.executeUpdate( ) == 0) return false;
             return true;
         } catch (SQLException ex) {
             ex.printStackTrace( );
@@ -205,42 +205,40 @@ public class DataBase {
         } catch (SQLException e) {
             e.printStackTrace( );
         }
-        if (finalId.equals(0L)) doSeqFromBegin();
+        doSeqFromBegin(finalId);
         return finalId;
     }
 
 
 
-    public int deleteRoutes (String username) {
-        int count = 0;
+    public boolean deleteRoutes (String username) {
         try {
             PreparedStatement ps = connection.prepareStatement(deleteRoutes);
             ps.setString(1, username);
-            count = ps.executeUpdate();
+            if (ps.executeUpdate() == 0) return false;
+            return true;
         } catch (SQLException e) {
             e.printStackTrace( );
+            return false;
         }
-        return count;
     }
 
 
-    public int removeById (long id, String username) {
-        int count = 0;
+    public boolean removeById (long id, String username) {
         try {
             PreparedStatement ps = connection.prepareStatement(deleteRouteById);
             ps.setString(1, username);
             ps.setLong(2, id);
-            count = ps.executeUpdate();
+            if (ps.executeUpdate() == 0) return false;
+            return true;
         } catch (SQLException e) {
             e.printStackTrace( );
+            return false;
         }
-        return count;
-
     }
 
     public boolean updateId (long id, Route route, String username) {
-        int a = removeById(id, username);
-        if (a > 0 ) {
+        if (removeById(id, username)) {
             try {
                 PreparedStatement ps = connection.prepareStatement(addRouteWithId);
                 ps.setString(1, username);
@@ -257,7 +255,7 @@ public class DataBase {
                 ps.setLong(12, route.getTo( ).getY( ));
                 ps.setString(13, route.getTo( ).getName( ));
                 ps.setFloat(14, route.getDistance( ));
-                ps.executeUpdate( );
+               if (ps.executeUpdate( ) == 0) return false;
                 return true;
             } catch (SQLException e) {
                 e.printStackTrace( );
@@ -266,14 +264,22 @@ public class DataBase {
         return false;
     }
 
-    public void doSeqFromBegin() {
+    public void doSeqFromBegin(long id) {
         try {
-            Statement stmt = connection.createStatement();
-            stmt.execute(seqFromBegin);
+            PreparedStatement ps = connection.prepareStatement(seqFromBegin);
+            ps.setLong(1, id);
         } catch (SQLException e) {
             e.printStackTrace( );
         }
 
+    }
+
+    public void theEnd() {
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace( );
+        }
     }
 
 

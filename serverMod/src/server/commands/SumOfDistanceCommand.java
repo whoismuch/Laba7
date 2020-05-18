@@ -34,11 +34,11 @@ public class SumOfDistanceCommand implements Command {
     }
 
     @Override
-    public void execute(SendToClient sendToClient, ICollectionManager icm, String arg, Route route, Driver driver) {
+    public String execute(ICollectionManager icm, String arg, Route route, Driver driver) {
         if (icm.size() == 0) {
-            sendToClient.send("Коллекция пуста");
+            return ("Коллекция пуста");
         } else {
-            sendToClient.send("Суммарная длина всех маршрутов : " + icm.sumOfDistance());
+            return ("Суммарная длина всех маршрутов : " + icm.sumOfDistance());
         }
     }
 

@@ -34,8 +34,8 @@ public class ShowCommand implements Command {
 
 
     @Override
-    public void execute(SendToClient sendToClient, ICollectionManager icm, String arg, Route route, Driver driver) {
-        sendToClient.send(icm.show());
+    public String execute(ICollectionManager icm, String arg, Route route, Driver driver) {
+        return (icm.show());
     }
 
     /**

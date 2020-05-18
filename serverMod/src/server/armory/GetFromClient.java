@@ -5,8 +5,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.concurrent.Callable;
 
-public class GetFromClient {
+public class GetFromClient implements Callable {
 
     private Socket incoming;
     Object obj;
@@ -15,7 +16,7 @@ public class GetFromClient {
         this.incoming = incoming;
     }
 
-    public Object get () {
+    public Object call () {
         try {
             ObjectInputStream get = new ObjectInputStream(incoming.getInputStream());
             obj = get.readObject();

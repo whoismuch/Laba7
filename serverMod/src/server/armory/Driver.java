@@ -24,7 +24,7 @@ public class Driver {
      * Поле словарь, где ключом является название команды, а значением - объект соответствующей команды
      */
     private HashMap<String, Command> man = new HashMap( );
-    private HashMap<String, String> available = new HashMap<>();
+    private HashMap<String, String> available = new HashMap<>( );
     private String username;
 
     public Driver (String username) {
@@ -59,7 +59,7 @@ public class Driver {
 
     private void registerCommand (Command command) {
         man.put(command.getName( ), command);
-        available.put(command.getName(), command.getArg());
+        available.put(command.getName( ), command.getArg( ));
     }
 
     /**
@@ -69,13 +69,14 @@ public class Driver {
      * @param line
      * @throws NoExecuteScriptInScript ошибка возникает, если в скрипте будет команда вызова скрипта
      */
-    public void execute (SendToClient sendToClient, ICollectionManager icm, String line, String arg, Route route, Driver driver) throws NoExecuteScriptInScript {
+    public String execute (ICollectionManager icm, String line, String arg, Route route, Driver driver) throws NoExecuteScriptInScript {
         Command command = man.get(line);
         if (command == null) {
-            sendToClient.send("Неверное имя команды : " + line);
+            return "Неверное имя команды : " + line;
         } else {
-            command.execute(sendToClient, icm, arg, route, driver);
-            addHisrory(line);
+            String result = command.execute(icm, arg, route, driver);
+            addHistory(line);
+            return result;
         }
     }
 
@@ -93,7 +94,7 @@ public class Driver {
      *
      * @param commandName имя команды
      */
-    private void addHisrory (String commandName) {
+    private void addHistory (String commandName) {
         if (arrayDeque.size( ) >= 7) {
             arrayDeque.pollLast( );
         }
@@ -108,13 +109,6 @@ public class Driver {
         return available;
     }
 
-//    public void load(SendToClient sendToClient, ICollectionManager icm, String path) {
-//        (new LoadCommand()).execute(sendToClient, icm, path, null, this);
-//    }
-
-//    public void save(SendToClient sendToClient, ICollectionManager icm, String path) {
-//        (new SaveCommand()).execute(sendToClient, icm, path, null, this);
-//    }
 
     public String getUsername ( ) {
         return username;

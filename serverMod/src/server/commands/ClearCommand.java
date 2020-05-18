@@ -33,9 +33,9 @@ public class ClearCommand implements Command {
 
 
     @Override
-    public void execute(SendToClient sendToClient, ICollectionManager icm, String arg, Route route, Driver driver) {
+    public String execute(ICollectionManager icm, String arg, Route route, Driver driver) {
         icm.clear(driver.getUsername());
-        sendToClient.send("Объекты, принадлежащие вам, были успешно удалены");
+        return "Объекты, принадлежащие вам, были успешно удалены";
     }
 
     /**

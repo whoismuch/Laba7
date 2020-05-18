@@ -48,10 +48,12 @@ public class ClientProviding {
 
             authentication();
 
-            selector.select( );
+            selector.select();
             userManager.setAvailable((HashMap) dataExchangeWithServer.getFromServer( ));
 
+
             clientLaunch( );
+
 
         } catch (UnresolvedAddressException ex) {
             userManager.writeln("Ойойой, такого адреса ведь не существует");
@@ -95,7 +97,7 @@ public class ClientProviding {
                 else {
                     int commandNumber = userManager.checkContentOfFile(arg, 0);
                     if (commandNumber == 0) {
-                        System.out.println("Бе, скрипт с ошибочками, такой скрипт мы обработать не сможем\nПожалуй, исправьте скрипт и введите следующую команду");
+                        userManager.writeln("Бе, скрипт с ошибочками, такой скрипт мы обработать не сможем\nПожалуй, исправьте скрипт и введите следующую команду");
                         continue;
                     }
                     arg = userManager.getFinalScript( );
@@ -119,6 +121,7 @@ public class ClientProviding {
         CommandDescription command;
         if (userManager.checkElement(commandname)) {
             Route route = userManager.readRoute( );
+            route.setUsername(username);
             command = new CommandDescription(commandname, arg, route);
         } else {
             command = new CommandDescription(commandname, arg, null);
