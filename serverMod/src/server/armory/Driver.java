@@ -18,17 +18,18 @@ import java.util.stream.Collectors;
  * @version final
  */
 public class Driver {
-    private ArrayDeque<String> arrayDeque;
+
 
     /**
      * Поле словарь, где ключом является название команды, а значением - объект соответствующей команды
      */
+
+    private HashMap<String, ArrayDeque<String>> dequeHashMap;
     private HashMap<String, Command> man = new HashMap( );
     private HashMap<String, String> available = new HashMap<>( );
-    private String username;
 
-    public Driver (String username) {
-        this.arrayDeque = new ArrayDeque<>( );
+    public Driver () {
+        this.dequeHashMap = new HashMap<>();
         registerCommand(new AddCommand( ));
         registerCommand(new ClearCommand( ));
         registerCommand(new ExecuteScriptCommand( ));
@@ -37,17 +38,13 @@ public class Driver {
         registerCommand(new HelpCommand( ));
         registerCommand(new HistoryCommand( ));
         registerCommand(new InfoCommand( ));
-//        registerCommand(new LoadCommand( ));
         registerCommand(new PrintAscendingCommand( ));
         registerCommand(new RemoveByIdCommand( ));
         registerCommand(new RemoveGreaterCommand( ));
         registerCommand(new RemoveLowerCommand( ));
-//        registerCommand(new SaveCommand( ));
         registerCommand(new ShowCommand( ));
         registerCommand(new SumOfDistanceCommand( ));
         registerCommand(new UpdateIdCommand( ));
-
-        this.username = username;
     }
 
 
@@ -69,13 +66,14 @@ public class Driver {
      * @param line
      * @throws NoExecuteScriptInScript ошибка возникает, если в скрипте будет команда вызова скрипта
      */
-    public String execute (ICollectionManager icm, String line, String arg, Route route, Driver driver) throws NoExecuteScriptInScript {
+    public String execute (ICollectionManager icm, String line, String arg, Route route, Driver driver, String username) throws NoExecuteScriptInScript {
+        if (!dequeHashMap.containsKey(username)) dequeHashMap.put(username, new ArrayDeque<>());
         Command command = man.get(line);
         if (command == null) {
             return "Неверное имя команды : " + line;
         } else {
-            String result = command.execute(icm, arg, route, driver);
-            addHistory(line);
+            String result = command.execute(icm, arg, route, driver, username);
+            addHistory(line, username);
             return result;
         }
     }
@@ -94,15 +92,15 @@ public class Driver {
      *
      * @param commandName имя команды
      */
-    private void addHistory (String commandName) {
-        if (arrayDeque.size( ) >= 7) {
-            arrayDeque.pollLast( );
+    private void addHistory (String commandName, String username) {
+        if (dequeHashMap.get(username).size( ) >= 7) {
+            dequeHashMap.get(username).pollLast( );
         }
-        arrayDeque.addFirst(commandName);
+        dequeHashMap.get(username).addFirst(commandName);
     }
 
-    public ArrayDeque<String> getHistory ( ) {
-        return arrayDeque;
+    public ArrayDeque<String> getHistory (String username) {
+        return dequeHashMap.get(username);
     }
 
     public HashMap<String, String> getAvailable ( ) {
@@ -110,7 +108,4 @@ public class Driver {
     }
 
 
-    public String getUsername ( ) {
-        return username;
-    }
 }

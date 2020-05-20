@@ -24,21 +24,36 @@ public class ClientProviding {
     private String arg;
     private String username;
     private String password;
+    private String choice;
+    private SocketChannel outcomingchannel;
+    private SocketAddress outcoming;
+    private boolean everythingIsAlright;
+    private String address;
+    private String port;
+    private boolean begin;
 
     public ClientProviding ( ) {
         Scanner scanner = new Scanner(System.in);
         userManager = new UserManager(scanner,
                 new BufferedWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8)),
                 true);
+        begin = true;
     }
 
     /**
      * Устанавливает активное соединение с сервером.
      */
     public void clientWork ( ) {
-        try (SocketChannel outcomingchannel = SocketChannel.open()) {
-            SocketAddress outcoming = new InetSocketAddress(userManager.readString("Введите адрес: ", false), Integer.parseInt(userManager.readString("Введите порт: ", false)));
+        try (SocketChannel outcomingchannel = SocketChannel.open( )) {
+            SocketAddress outcoming = new InetSocketAddress((address), Integer.parseInt(port));
+
+            everythingIsAlright = true;
+
             outcomingchannel.connect(outcoming);
+
+            this.outcomingchannel = outcomingchannel;
+            this.outcoming = outcoming;
+
 
             dataExchangeWithServer = new DataExchangeWithServer(outcomingchannel);
 
@@ -46,69 +61,83 @@ public class ClientProviding {
             outcomingchannel.configureBlocking(false);
             outcomingchannel.register(selector, SelectionKey.OP_READ);
 
-            authentication();
+            if (begin) {
+                authentication();
+                begin = false;
+            }
 
-            selector.select();
-            userManager.setAvailable((HashMap) dataExchangeWithServer.getFromServer( ));
-
-
-            clientLaunch( );
-
+            clientLaunch();
 
         } catch (UnresolvedAddressException ex) {
             userManager.writeln("Ойойой, такого адреса ведь не существует");
+            enterAddress();
             clientWork( );
         } catch (NumberFormatException ex) {
             userManager.writeln("Тут, видимо, должна быть циферка, попробуйте еще раз, позязя");
-            clientWork();
+            enterAddress();
+            clientWork( );
         } catch (IOException e) {
             lostConnection( );
-            clientWork();
+            enterAddress();
+            clientWork( );
         }
     }
 
 
-    public void clientLaunch ( ) throws IOException {
+    public void clientLaunch ( )  {
+        try {
+            String line = "check";
+            while (!line.equals("exit")) {
 
-        String line = "check";
-        while (!line.equals("exit")) {
-            userManager.write("Введите команду: ");
-            line = userManager.read( );
-            line = line.trim( );
-            commandname = line;
-            arg = null;
-            if (line.indexOf(" ") != -1) {
-                commandname = line.substring(0, line.indexOf(" "));
-                arg = (line.substring(line.indexOf(" "))).trim( );
-            }
-
-            if (!userManager.checkCommandName(commandname)) {
-                continue;
-            }
-
-            if (!userManager.checkArg(commandname, arg)) {
-                continue;
-            }
-
-            if (userManager.checkFile(commandname)) {
-                arg = userManager.contentOfFile(arg);
-                userManager.setFinalScript(arg);
-                if (arg == null) continue;
-                else {
-                    int commandNumber = userManager.checkContentOfFile(arg, 0);
-                    if (commandNumber == 0) {
-                        userManager.writeln("Бе, скрипт с ошибочками, такой скрипт мы обработать не сможем\nПожалуй, исправьте скрипт и введите следующую команду");
-                        continue;
-                    }
-                    arg = userManager.getFinalScript( );
-                    sendCommand( );
-                    getScriptResult(commandNumber);
+                if (everythingIsAlright) {
+                    selector.select( );
+                    userManager.setAvailable((HashMap) dataExchangeWithServer.getFromServer( ));
                 }
-            } else {
-                sendCommand( );
-                getResult( );
+                userManager.write("Введите команду: ");
+                line = userManager.read( );
+                line = line.trim( );
+                commandname = line;
+                arg = null;
+                if (line.indexOf(" ") != -1) {
+                    commandname = line.substring(0, line.indexOf(" "));
+                    arg = (line.substring(line.indexOf(" "))).trim( );
+                }
+
+                if (!userManager.checkCommandName(commandname)) {
+                    everythingIsAlright = false;
+                    continue;
+                }
+
+                if (!userManager.checkArg(commandname, arg)) {
+                    everythingIsAlright = false;
+                    continue;
+                }
+
+                if (userManager.checkFile(commandname)) {
+                    arg = userManager.contentOfFile(arg);
+                    userManager.setFinalScript(arg);
+                    if (arg == null) {
+                        everythingIsAlright = false;
+                        continue;
+                    } else {
+                        int commandNumber = userManager.checkContentOfFile(arg, 0);
+                        if (commandNumber == 0) {
+                            userManager.writeln("Бе, скрипт с ошибочками, такой скрипт мы обработать не сможем\nПожалуй, исправьте скрипт и введите следующую команду");
+                            continue;
+                        }
+                        arg = userManager.getFinalScript( );
+                        sendCommand( );
+                        getScriptResult(commandNumber);
+                    }
+                } else {
+                    sendCommand( );
+                    getResult( );
+                }
+
             }
 
+        } catch (IOException e) {
+            clientWork();
         }
     }
 
@@ -122,9 +151,9 @@ public class ClientProviding {
         if (userManager.checkElement(commandname)) {
             Route route = userManager.readRoute( );
             route.setUsername(username);
-            command = new CommandDescription(commandname, arg, route);
+            command = new CommandDescription(commandname, arg, route, username, password, choice);
         } else {
-            command = new CommandDescription(commandname, arg, null);
+            command = new CommandDescription(commandname, arg, null, username, password, choice);
         }
 
         dataExchangeWithServer.sendToServer(command);
@@ -135,9 +164,12 @@ public class ClientProviding {
         String s = dataExchangeWithServer.getFromServer( ).toString( );
         userManager.writeln(s);
 
+        if (s.contains("Пользователь с таким логином не зарегистрирован" + "\nИзвините, ваш запрос не может быть выполнен. Попробуйте еще раз") || s.contains("Вы ввели неправильный пароль" + "\nИзвините, ваш запрос не может быть выполнен. Попробуйте еще раз") || s.contains("Пользователь с таким логином уже зарегистрирован. Может, вам стоит авторизоваться?" + "\nИзвините, ваш запрос не может быть выполнен. Попробуйте еще раз")) {
+            authentication( );
+        }
     }
 
-    public void getScriptResult (int commandNumber) throws IOException {
+    public void getScriptResult (int commandNumber) {
         for (int i = 0; i <= commandNumber; i++) {
             try {
                 getResult( );
@@ -165,29 +197,24 @@ public class ClientProviding {
         }
     }
 
-    public void authentication() throws IOException {
+    public void authentication ( ){
         String choice = userManager.readChoice("Вас интересует Регистрация или Авторизация? Введите корректный ответ: ", false);
         String username = userManager.readString("Введите логин: ", false);
         String password = userManager.readString("Введите пароль: ", false);
-        if (username.contains(" ") || password.contains(" "))
-        {
+        if (username.contains(" ") || password.contains(" ")) {
             userManager.writeln("Логин и пароль не должны содержать пробелы");
-            authentication();
+            authentication( );
         }
         this.username = username;
         this.password = password;
-        dataExchangeWithServer.sendToServer(choice + " " + username + " " + password);
+        this.choice = choice;
 
-        selector.select();
-        String s = dataExchangeWithServer.getFromServer().toString();
+    }
 
-        userManager.writeln(s);
-
-        if (s.equals("Пользователь с таким логином не зарегистрирован") || s.equals("Вы ввели неправильный пароль") || s.equals("Пользователь с таким логином уже зарегистрирован. Может, вам стоит авторизоваться?")) {
-            authentication();
-        }
-
-
+    public void enterAddress() {
+        address = userManager.readString("Введите адрес: ", false);
+        port = userManager.readString("Введите порт: ", false);
+        everythingIsAlright = true;
     }
 }
 

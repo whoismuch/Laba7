@@ -18,7 +18,7 @@ public interface Command {
      * Абстрактный метод для выполнения команды
      * @param icm
      */
-    String execute (ICollectionManager icm, String arg, Route route, Driver driver);
+    String execute (ICollectionManager icm, String arg, Route route, Driver driver, String username);
 
     /**
      * Абстрактный метод для получения описания команды

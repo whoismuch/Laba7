@@ -33,8 +33,8 @@ public class ClearCommand implements Command {
 
 
     @Override
-    public String execute(ICollectionManager icm, String arg, Route route, Driver driver) {
-        icm.clear(driver.getUsername());
+    public String execute(ICollectionManager icm, String arg, Route route, Driver driver, String username) {
+        icm.clear(username);
         return "Объекты, принадлежащие вам, были успешно удалены";
     }
 

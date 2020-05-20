@@ -84,10 +84,16 @@ public class Navigator implements ICollectionManager {
      */
     @Override
     public boolean removeById (long id, String username) {
+        System.out.println(id + " " + username );
         lock.writeLock( ).lock( );
         try {
             if (db.removeById(id, username)) {
-                routeBook.toList( ).stream( ).filter(x -> (x.getUsername( ).equals(username) && x.getId( ) == id)).forEach(routeBook::remove);
+                List<Route> routes = routeBook.toList().stream().filter(x -> (x.getId() == id) && (x.getUsername().equals(username))).collect(Collectors.toList());
+                if(!routes.isEmpty()){
+                    routes.forEach(routeBook::remove);
+                    return true;
+                }
+                return false;
             }
             return false;
         } finally {
@@ -122,10 +128,11 @@ public class Navigator implements ICollectionManager {
         lock.writeLock( ).lock( );
         try {
             if (db.updateId(id, route, username)) {
-                routeBook.toList( ).stream( ).filter(x -> (x.getUsername( ).equals(username) && x.getId( ) == id)).forEach(routeBook::remove);
-                route.setId(id);
-                routeBook.add(route);
-                return true;
+                List<Route> routes = routeBook.toList().stream().filter(x -> x.getId() == id).collect(Collectors.toList());
+                if(!routes.isEmpty()){
+                    routes.forEach(routeBook::remove);
+                    routeBook.add(id, route);
+                }
             }
             return false;
         } finally {

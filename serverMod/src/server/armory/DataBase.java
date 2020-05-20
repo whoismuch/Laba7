@@ -32,7 +32,7 @@ public class DataBase {
     String load = "SELECT * FROM ROUTES";
     String deleteRoutes = "DELETE FROM ROUTES WHERE username = ?;";
     String deleteRouteById = "DELETE FROM ROUTES WHERE username = ? AND id = ?;";
-    String seqFromBegin ="ALTER SEQUENCE id RESTART WITH ?;";
+    String seqFromBegin ="ALTER SEQUENCE id RESTART WITH";
 
 
     public DataBase ( ) {
@@ -69,7 +69,7 @@ public class DataBase {
         return dbConnection;
     }
 
-    public String authentication (String username, String expectedPassword) {
+    public String authentication (String username) {
         try {
             PreparedStatement ps = connection.prepareStatement(checkUser);
             ps.setString(1, username);
@@ -88,7 +88,7 @@ public class DataBase {
 
     public String registration (String username, String expectedPassword) {
         try {
-            String password = authentication(username, expectedPassword);
+            String password = authentication(username);
             if (password != null)
                 return "Пользователь с таким логином уже зарегистрирован. Может, вам стоит авторизоваться?";
             else {
@@ -117,7 +117,7 @@ public class DataBase {
     }
 
     public String authorization (String username, String expectedPassword) {
-            String password = authentication(username, expectedPassword);
+            String password = authentication(username);
             if (password == null) return "Пользователь с таким логином не зарегистрирован";
         try {
             if (password.equals(getHashPassword(expectedPassword))) return "Вы успешно авторизовались";
@@ -206,6 +206,7 @@ public class DataBase {
             e.printStackTrace( );
         }
         doSeqFromBegin(finalId);
+        System.out.println(finalId);
         return finalId;
     }
 
@@ -264,10 +265,12 @@ public class DataBase {
         return false;
     }
 
-    public void doSeqFromBegin(long id) {
+    public void doSeqFromBegin(Long id) {
         try {
+            Long newId = id + 1;
+            seqFromBegin += " " + newId.toString() + ";";
             PreparedStatement ps = connection.prepareStatement(seqFromBegin);
-            ps.setLong(1, id);
+            ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace( );
         }

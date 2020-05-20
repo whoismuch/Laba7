@@ -12,134 +12,86 @@ public class ServerConnection implements Runnable {
 
     private Socket incoming;
     private DataBase db;
-    private GetFromClient getFromClient;
     private SendToClient sendToClient;
-    private String username;
     private RouteBook routeBook;
     private Navigator navigator;
-    private boolean everythingIsAlright = true;
     private Driver driver;
-    private Future<Object> future;
+    private boolean everythingIsAlright = true;
     private ExecutorService executorService;
-    private ExecutorService executor;
+    private Object request;
+    private CommandDescription command;
+    private String authenticationResult;
 
-    public ServerConnection (Socket incoming, DataBase db, RouteBook routeBook, Navigator navigator) {
+
+    public ServerConnection (Object request, Socket incoming, DataBase db, RouteBook routeBook, Navigator navigator, Driver driver, ExecutorService executorService, SendToClient sendToClient) {
+        this.request = request;
         this.incoming = incoming;
         this.db = db;
         this.routeBook = routeBook;
         this.navigator = navigator;
+        this.driver = driver;
+        this.executorService = executorService;
+        this.sendToClient = sendToClient;
     }
 
 
     @Override
     public void run ( ) {
 
-        GetFromClient getFromClient = new GetFromClient(incoming);
-        SendToClient sendToClient = new SendToClient(incoming);
+            command = (CommandDescription) request;
 
-        executor = Executors.newFixedThreadPool(1);
-        executorService = Executors.newFixedThreadPool(1);
+            checkPassword( );
 
-        this.getFromClient = getFromClient;
-        this.sendToClient = sendToClient;
-
-
-        checkPassword( );
-
-
-        Driver driver = new Driver(username);
-        this.driver = driver;
-
-
-        sendToClient.setMessage(driver.getAvailable( ));
-        executorService.submit(sendToClient);
-
-        try {
-            executorService.awaitTermination(2, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace( );
-        }
-
-        executeCommands( );
-
-        close( );
-    }
-
-    public void executeCommands ( ) {
-        try {
-            while (true) {
-                if (!everythingIsAlright) break;
-                future = executor.submit(getFromClient);
-                CommandDescription command = (CommandDescription) future.get();
-                String result =  driver.execute(navigator, command.getName( ), command.getArg( ), command.getRoute( ), driver);
-
-                sendToClient.setMessage(result);
+            if (!everythingIsAlright) {
+                sendToClient.setMessage(authenticationResult + "\nИзвините, ваш запрос не может быть выполнен. Попробуйте еще раз");
                 executorService.submit(sendToClient);
 
-                try {
-                    executorService.awaitTermination(2, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
-                    e.printStackTrace( );
-                }
+            } else executeCommand( );
 
-                if (command.getName( ).equals("exit")) break;
-            }
-        } catch (ClassCastException | NullPointerException ex) {
-            everythingIsAlright = false;
-            executeCommands( );
+        try {
+            Thread.sleep(1500);
         } catch (InterruptedException e) {
             e.printStackTrace( );
-        } catch (ExecutionException e) {
-            e.printStackTrace( );
         }
-    }
 
-    public void close ( ) {
         try {
-            incoming.close( );
+            incoming.close();
         } catch (IOException e) {
             e.printStackTrace( );
         }
+
     }
+
+    public void executeCommand ( ) {
+
+        if (everythingIsAlright) {
+
+            String result = driver.execute(navigator, command.getName( ), command.getArg( ), command.getRoute( ), driver, command.getUsername( ));
+
+            sendToClient.setMessage(result);
+            executorService.submit(sendToClient);
+
+        }
+    }
+
 
     public void checkPassword ( ) {
         try {
-            future = executor.submit(getFromClient);
-            String message = future.get().toString();
-            String[] mas = message.split(" ");
-            String choice = mas[0];
-            String username = mas[1];
-            String password = mas[2];
 
-            this.username = username;
+            authenticationResult = null;
 
-            String authenticationResult = null;
-
-            if (choice.equals("Регистрация")) {
-                authenticationResult = db.registration(username, password);
+            if (command.getChoice( ).equals("Регистрация")) {
+                authenticationResult = db.registration(command.getUsername( ), command.getPassword( ));
             }
-            if (choice.equals("Авторизация")) {
-                authenticationResult = db.authorization(username, password);
-            }
-
-            sendToClient.setMessage(authenticationResult);
-            executorService.submit(sendToClient);
-
-            try {
-                executorService.awaitTermination(2, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                e.printStackTrace( );
+            if (command.getChoice( ).equals("Авторизация")) {
+                authenticationResult = db.authorization(command.getUsername( ), command.getPassword( ));
             }
 
             if (authenticationResult.equals("Пользователь с таким логином не зарегистрирован") || authenticationResult.equals("Вы ввели неправильный пароль") || authenticationResult.equals("Пользователь с таким логином уже зарегистрирован. Может, вам стоит авторизоваться?")) {
-                checkPassword( );
+                everythingIsAlright = false;
             }
         } catch (NullPointerException ex) {
             everythingIsAlright = false;
-        } catch (InterruptedException e) {
-            e.printStackTrace( );
-        } catch (ExecutionException e) {
-            e.printStackTrace( );
         }
     }
 

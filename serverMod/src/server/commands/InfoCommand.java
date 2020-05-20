@@ -33,7 +33,7 @@ public class InfoCommand implements Command {
     }
 
     @Override
-    public String execute(ICollectionManager icm, String arg, Route route, Driver driver) {
+    public String execute(ICollectionManager icm, String arg, Route route, Driver driver, String username) {
         return (icm.info( ));
     }
 

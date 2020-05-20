@@ -10,11 +10,18 @@ public class CommandDescription implements Serializable {
     private String name;
     private String arg;
     private Route route;
+    private String username;
+    private String password;
+    private String choice;
 
-    public CommandDescription(String name, String arg, Route route)  {
+
+    public CommandDescription(String name, String arg, Route route, String username, String password, String choice)  {
         this.setName(name);
         this.setArg(arg);
         this.route = route;
+        this.username = username;
+        this.password = password;
+        this.choice = choice;
     }
 
     @Override
@@ -44,4 +51,16 @@ public class CommandDescription implements Serializable {
     }
 
     public void setRoute(Route route) {this.route = route;}
+
+    public String getUsername ( ) {
+        return username;
+    }
+
+    public String getPassword ( ) {
+        return password;
+    }
+
+    public String getChoice ( ) {
+        return choice;
+    }
 }

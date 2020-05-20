@@ -10,6 +10,7 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class ServerApp {
 
@@ -31,6 +32,7 @@ public class ServerApp {
             DataBase db = new DataBase( );
             RouteBook routeBook = new RouteBook( );
             Navigator navigator = new Navigator(routeBook, db);
+            Driver driver = new Driver();
             navigator.loadBegin( );
 
 
@@ -39,7 +41,7 @@ public class ServerApp {
                 db.theEnd();
             }));
 
-            System.out.print("Сервер начал слушать клиента " + "\nПорт " + port +
+            System.out.print("Сервер начал слушать клиентов" + "\nПорт " + port +
                     " / Адрес " + InetAddress.getLocalHost( ) + ".\nОжидаем подключения клиента\n ");
             while (true) {
                 try (ServerSocketChannel ss = ServerSocketChannel.open( )) {
@@ -47,9 +49,19 @@ public class ServerApp {
 
                     Socket incoming = ss.accept( ).socket( );
                     System.out.println(incoming + " подключился к серверу.");
-                    Thread childTread = new Thread( new ServerConnection(incoming, db, routeBook, navigator));
-                    childTread.start();
-//                    executeIt.execute(new ServerConnection(incoming, db, routeBook, navigator));
+
+                    SendToClient sendToClient = new SendToClient(incoming);
+
+                    sendToClient.setMessage(driver.getAvailable( ));
+                    sendToClient.run();
+
+
+
+                    ExecutorService executor = Executors.newFixedThreadPool(8);
+                    ExecutorService executorService = Executors.newFixedThreadPool(8);
+
+                    GetFromClient getFromClient = new GetFromClient(incoming, db, navigator, routeBook, driver, executorService, sendToClient  );
+                    executor.submit(getFromClient);
 
 
                 } catch (UnknownHostException | NumberFormatException ex) {

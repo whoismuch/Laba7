@@ -10,7 +10,9 @@ public class ClientApp {
     public static void main(String[] args)  {
         System.out.println("Запуск клиентского модуля.\nПодключение к серверу ...");
         ClientProviding provide = new ClientProviding();
+        provide.enterAddress();
         provide.clientWork();
+
     }
 }
 

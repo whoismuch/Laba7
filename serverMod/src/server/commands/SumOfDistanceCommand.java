@@ -34,7 +34,7 @@ public class SumOfDistanceCommand implements Command {
     }
 
     @Override
-    public String execute(ICollectionManager icm, String arg, Route route, Driver driver) {
+    public String execute(ICollectionManager icm, String arg, Route route, Driver driver, String username) {
         if (icm.size() == 0) {
             return ("Коллекция пуста");
         } else {

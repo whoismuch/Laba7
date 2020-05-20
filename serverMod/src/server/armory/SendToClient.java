@@ -24,6 +24,7 @@ public class SendToClient implements Runnable {
             incoming.getOutputStream().write(outcoming);
             send.flush();
             baos.flush();
+
         } catch (IOException ex) {
             System.out.println("Клиент решил внезапно покинуть нас" );
         }

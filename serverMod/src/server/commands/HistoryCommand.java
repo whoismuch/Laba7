@@ -30,11 +30,11 @@ public class HistoryCommand implements Command {
     }
 
     @Override
-    public String execute(ICollectionManager icm, String arg, Route route, Driver driver) {
-        if (driver.getHistory().size() == 0) {
+    public String execute(ICollectionManager icm, String arg, Route route, Driver driver, String username) {
+        if (driver.getHistory(username).size() == 0) {
             return ("Вы еще ничего не вводили");
         } else {
-            return (driver.getHistory().stream().collect(Collectors.joining("\n")));
+            return (driver.getHistory(username).stream().collect(Collectors.joining("\n")));
         }
     }
 

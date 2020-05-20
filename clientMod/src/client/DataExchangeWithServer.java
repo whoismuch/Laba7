@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 public class DataExchangeWithServer {
     private SocketChannel outcomingchannel;
 
+
     public DataExchangeWithServer (SocketChannel outcomingchannel) {
         this.outcomingchannel = outcomingchannel;
     }

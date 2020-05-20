@@ -46,7 +46,7 @@ public class ExecuteScriptCommand implements Command {
 
 
     @Override
-    public String execute(ICollectionManager icm, String arg, Route route, Driver driver) {
+    public String execute(ICollectionManager icm, String arg, Route route, Driver driver, String username) {
         try {
             result ="";
             CharArrayReader car = new CharArrayReader(arg.toCharArray());
@@ -69,7 +69,7 @@ public class ExecuteScriptCommand implements Command {
 
                 }
 
-                result = driver.execute(icm, commandname, argue, route, driver) + "\n";
+                result = driver.execute(icm, commandname, argue, route, driver, username) + "\n";
             }
             return result;
         } catch (NullPointerException e) {

@@ -33,8 +33,8 @@ public class RemoveLowerCommand implements Command {
     }
 
     @Override
-    public String execute(ICollectionManager icm, String arg, Route route, Driver driver) {
-        icm.removeLower(route, driver.getUsername());
+    public String execute(ICollectionManager icm, String arg, Route route, Driver driver, String username) {
+        icm.removeLower(route, username);
         return ("Элементы, меньшие заданного и принадлежащие вам, успешно удалены");
     }
 

@@ -30,9 +30,9 @@ public class RemoveByIdCommand implements Command {
      */
 
     @Override
-    public String execute(ICollectionManager icm, String arg, Route route, Driver driver) {
+    public String execute(ICollectionManager icm, String arg, Route route, Driver driver, String username) {
         Long id = Long.parseLong(arg);
-        return (icm.removeById(id, driver.getUsername())? "Элемент с id : " + id + " удален!": "Элемент не найден и/или вам не принадлежит");
+        return (icm.removeById(id, username)? "Элемент с id : " + id + " удален!": "Элемент не найден и/или вам не принадлежит");
     }
 
     /**
