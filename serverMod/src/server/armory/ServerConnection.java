@@ -21,6 +21,9 @@ public class ServerConnection implements Runnable {
     private Object request;
     private CommandDescription command;
     private String authenticationResult;
+    private Future a;
+    private Future b;
+    private Future c;
 
 
     public ServerConnection (Object request, Socket incoming, DataBase db, RouteBook routeBook, Navigator navigator, Driver driver, ExecutorService executorService, SendToClient sendToClient) {
@@ -37,40 +40,51 @@ public class ServerConnection implements Runnable {
 
     @Override
     public void run ( ) {
+        try {
 
             command = (CommandDescription) request;
 
+            everythingIsAlright = true;
+
             checkPassword( );
 
-            if (!everythingIsAlright) {
-                sendToClient.setMessage(authenticationResult + "\nИзвините, ваш запрос не может быть выполнен. Попробуйте еще раз");
-                executorService.submit(sendToClient);
+            if (command.getName( ) == null) {
+                sendToClient.setMessage(authenticationResult);
+                a = executorService.submit(sendToClient);
+                a.get( );
+            } else {
 
-            } else executeCommand( );
+                if (!everythingIsAlright) {
+                    sendToClient.setMessage(authenticationResult + "\nИзвините, ваш запрос не может быть выполнен. Попробуйте еще раз");
+                    b = executorService.submit(sendToClient);
+                    b.get( );
+                } else executeCommand( );
+            }
 
-        try {
-            Thread.sleep(1500);
-        } catch (InterruptedException e) {
-            e.printStackTrace( );
-        }
 
-        try {
-            incoming.close();
-        } catch (IOException e) {
-            e.printStackTrace( );
+            try {
+                incoming.close( );
+            } catch (IOException e) {
+                e.printStackTrace( );
+            }
+        } catch (InterruptedException | ExecutionException ex) {
+            ex.printStackTrace( );
+        } catch (NullPointerException ex) {
+            System.out.println("Мы дико извиняемся, но у нас неполадочки со связью" );
         }
 
     }
 
-    public void executeCommand ( ) {
+    public void executeCommand ( ) throws ExecutionException, InterruptedException {
 
         if (everythingIsAlright) {
 
             String result = driver.execute(navigator, command.getName( ), command.getArg( ), command.getRoute( ), driver, command.getUsername( ));
 
             sendToClient.setMessage(result);
-            executorService.submit(sendToClient);
+            c = executorService.submit(sendToClient);
 
+            c.get( );
         }
     }
 
@@ -80,10 +94,10 @@ public class ServerConnection implements Runnable {
 
             authenticationResult = null;
 
-            if (command.getChoice( ).equals("Регистрация")) {
+            if (command.getChoice( ).startsWith("Р")) {
                 authenticationResult = db.registration(command.getUsername( ), command.getPassword( ));
             }
-            if (command.getChoice( ).equals("Авторизация")) {
+            if (command.getChoice( ).startsWith("А")) {
                 authenticationResult = db.authorization(command.getUsername( ), command.getPassword( ));
             }
 

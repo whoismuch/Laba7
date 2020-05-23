@@ -8,6 +8,8 @@ import server.receiver.collection.ICollectionManager;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 
@@ -27,6 +29,7 @@ public class Driver {
     private HashMap<String, ArrayDeque<String>> dequeHashMap;
     private HashMap<String, Command> man = new HashMap( );
     private HashMap<String, String> available = new HashMap<>( );
+    private ReadWriteLock lock;
 
     public Driver () {
         this.dequeHashMap = new HashMap<>();
@@ -45,6 +48,7 @@ public class Driver {
         registerCommand(new ShowCommand( ));
         registerCommand(new SumOfDistanceCommand( ));
         registerCommand(new UpdateIdCommand( ));
+        lock = new ReentrantReadWriteLock();
     }
 
 
@@ -67,14 +71,19 @@ public class Driver {
      * @throws NoExecuteScriptInScript ошибка возникает, если в скрипте будет команда вызова скрипта
      */
     public String execute (ICollectionManager icm, String line, String arg, Route route, Driver driver, String username) throws NoExecuteScriptInScript {
-        if (!dequeHashMap.containsKey(username)) dequeHashMap.put(username, new ArrayDeque<>());
-        Command command = man.get(line);
-        if (command == null) {
-            return "Неверное имя команды : " + line;
-        } else {
-            String result = command.execute(icm, arg, route, driver, username);
-            addHistory(line, username);
-            return result;
+        lock.writeLock().lock();
+        try {
+            if (!dequeHashMap.containsKey(username)) dequeHashMap.put(username, new ArrayDeque<>( ));
+            Command command = man.get(line);
+            if (command == null) {
+                return "Неверное имя команды : " + line;
+            } else {
+                String result = command.execute(icm, arg, route, driver, username);
+                addHistory(line, username);
+                return result;
+            }
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 

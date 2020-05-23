@@ -32,10 +32,14 @@ public class DataBase {
     String load = "SELECT * FROM ROUTES";
     String deleteRoutes = "DELETE FROM ROUTES WHERE username = ?;";
     String deleteRouteById = "DELETE FROM ROUTES WHERE username = ? AND id = ?;";
-    String seqFromBegin ="ALTER SEQUENCE id RESTART WITH";
+    String seqFromBegin = "ALTER SEQUENCE id RESTART WITH";
 
 
-    public DataBase ( ) {
+    public DataBase (String port, String user, String password) {
+        DB_CONNECTION = "jdbc:postgresql://pg:" + port + "/studs";
+        DB_USER = user;
+        DB_PASSWORD = password;
+        this.connection = getDBConnection( );
         while (connection == null) {
             startInizialization( );
             this.connection = getDBConnection( );
@@ -46,7 +50,7 @@ public class DataBase {
     public void startInizialization ( ) {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Введите, пожалуйста, порт для подключения к БДэшечке: ");
-        DB_CONNECTION = "jdbc:postgresql://localhost:" + scanner.nextLine( ).trim( ) + "/studs";
+        DB_CONNECTION = "jdbc:postgresql://pg:" + scanner.nextLine( ).trim( ) + "/studs";
         System.out.print("Введите, пожалуйста, имя пользователя: ");
         DB_USER = scanner.nextLine( ).trim( );
         System.out.print("Введите, пожалуйста, пароль: ");
@@ -95,8 +99,6 @@ public class DataBase {
                 PreparedStatement ps2 = connection.prepareStatement(addUser);
                 ps2.setString(1, username);
                 ps2.setString(2, getHashPassword(expectedPassword));
-
-
                 ps2.executeUpdate( );
 
                 return "Вы успешно зарегистрировались";
@@ -107,39 +109,33 @@ public class DataBase {
         } catch (NoSuchElementException ex) {
             ex.printStackTrace( );
             return "";
-        } catch (NoSuchAlgorithmException ex) {
-            ex.printStackTrace( );
-            return "";
-        } catch (UnsupportedEncodingException ex) {
-            ex.printStackTrace( );
-            return "";
         }
     }
 
     public String authorization (String username, String expectedPassword) {
-            String password = authentication(username);
-            if (password == null) return "Пользователь с таким логином не зарегистрирован";
-        try {
-            if (password.equals(getHashPassword(expectedPassword))) return "Вы успешно авторизовались";
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace( );
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace( );
-        }
+        String password = authentication(username);
+        if (password == null) return "Пользователь с таким логином не зарегистрирован";
+        if (password.equals(getHashPassword(expectedPassword))) return "Вы успешно авторизовались";
         return "Вы ввели неправильный пароль";
     }
 
-    public String getHashPassword (String password) throws UnsupportedEncodingException, NoSuchAlgorithmException {
-        MessageDigest sha = MessageDigest.getInstance("SHA-384");
+    public String getHashPassword (String password) {
+        String hashtext = "";
+        try {
+            MessageDigest sha = MessageDigest.getInstance("SHA-384");
 
-        byte[] messageDigest = sha.digest(password.getBytes());
-        BigInteger no = new BigInteger(1, messageDigest);
+            byte[] messageDigest = sha.digest(password.getBytes( ));
+            BigInteger no = new BigInteger(1, messageDigest);
 
-        String hashtext = no.toString(16);
+            hashtext = no.toString(16);
+            return hashtext;
+        } catch (NoSuchAlgorithmException ex) {
+            System.out.println("Упс");
+        }
         return hashtext;
     }
 
-    public boolean add (Route route, String username){
+    public boolean add (Route route, String username) {
         try {
             PreparedStatement ps = connection.prepareStatement(addRoute);
             ps.setString(1, username);
@@ -165,29 +161,29 @@ public class DataBase {
 
 
     public Timestamp getTimestamp (Route route) {
-        Timestamp timestamp = Timestamp.valueOf(route.getCreationDate().toLocalDateTime());
+        Timestamp timestamp = Timestamp.valueOf(route.getCreationDate( ).toLocalDateTime( ));
         return timestamp;
     }
 
     public String getTimeZone (Route route) {
-        String timeZone = route.getCreationDate().getZone().toString();
+        String timeZone = route.getCreationDate( ).getZone( ).toString( );
         return timeZone;
     }
 
-    public Long load(LinkedHashSet<Route> routes) {
+    public Long load (LinkedHashSet<Route> routes) {
         Long finalId = new Long(0);
         try {
-            Statement stmt = connection.createStatement();
+            Statement stmt = connection.createStatement( );
             ResultSet rs3 = stmt.executeQuery(load);
 
-            while (rs3.next()) {
+            while (rs3.next( )) {
                 Long id = rs3.getLong("id");
                 String name = rs3.getString("name");
                 Long coordinate_X = rs3.getLong("coordinate_X");
                 int coordinate_Y = rs3.getInt("coordinate_Y");
                 Timestamp timestamp = rs3.getTimestamp("creationDate");
                 String timeZoneStr = rs3.getString("timeZone");
-                LocalDateTime localDateTime = timestamp.toLocalDateTime();
+                LocalDateTime localDateTime = timestamp.toLocalDateTime( );
                 ZonedDateTime zdt = localDateTime.atZone(ZoneId.of(timeZoneStr));
                 long from_X = rs3.getLong("from_X");
                 Long from_Y = rs3.getLong("from_Y");
@@ -198,6 +194,7 @@ public class DataBase {
                 Float distance = rs3.getFloat("distance");
 
                 Route route = new Route(name, id, new Coordinates(coordinate_X, coordinate_Y), zdt, new Location(from_name, from_X, from_Y), new Location(to_name, to_X, to_Y), distance);
+                route.setUsername(rs3.getString("username"));
                 routes.add(route);
 
                 finalId = id;
@@ -206,17 +203,15 @@ public class DataBase {
             e.printStackTrace( );
         }
         doSeqFromBegin(finalId);
-        System.out.println(finalId);
         return finalId;
     }
-
 
 
     public boolean deleteRoutes (String username) {
         try {
             PreparedStatement ps = connection.prepareStatement(deleteRoutes);
             ps.setString(1, username);
-            if (ps.executeUpdate() == 0) return false;
+            if (ps.executeUpdate( ) == 0) return false;
             return true;
         } catch (SQLException e) {
             e.printStackTrace( );
@@ -230,7 +225,7 @@ public class DataBase {
             PreparedStatement ps = connection.prepareStatement(deleteRouteById);
             ps.setString(1, username);
             ps.setLong(2, id);
-            if (ps.executeUpdate() == 0) return false;
+            if (ps.executeUpdate( ) == 0) return false;
             return true;
         } catch (SQLException e) {
             e.printStackTrace( );
@@ -256,7 +251,7 @@ public class DataBase {
                 ps.setLong(12, route.getTo( ).getY( ));
                 ps.setString(13, route.getTo( ).getName( ));
                 ps.setFloat(14, route.getDistance( ));
-               if (ps.executeUpdate( ) == 0) return false;
+                if (ps.executeUpdate( ) == 0) return false;
                 return true;
             } catch (SQLException e) {
                 e.printStackTrace( );
@@ -265,21 +260,21 @@ public class DataBase {
         return false;
     }
 
-    public void doSeqFromBegin(Long id) {
+    public void doSeqFromBegin (Long id) {
         try {
             Long newId = id + 1;
-            seqFromBegin += " " + newId.toString() + ";";
+            seqFromBegin += " " + newId.toString( ) + ";";
             PreparedStatement ps = connection.prepareStatement(seqFromBegin);
-            ps.executeUpdate();
+            ps.executeUpdate( );
         } catch (SQLException e) {
             e.printStackTrace( );
         }
 
     }
 
-    public void theEnd() {
+    public void theEnd ( ) {
         try {
-            connection.close();
+            connection.close( );
         } catch (SQLException e) {
             e.printStackTrace( );
         }

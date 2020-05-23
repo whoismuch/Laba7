@@ -83,13 +83,12 @@ public class Navigator implements ICollectionManager {
      * @return true - если элемент существовал и false - в ином случае
      */
     @Override
-    public boolean removeById (long id, String username) {
-        System.out.println(id + " " + username );
+    public boolean removeById (Long id, String username) {
         lock.writeLock( ).lock( );
         try {
             if (db.removeById(id, username)) {
-                List<Route> routes = routeBook.toList().stream().filter(x -> (x.getId() == id) && (x.getUsername().equals(username))).collect(Collectors.toList());
-                if(!routes.isEmpty()){
+                List<Route> routes = routeBook.toList( ).stream( ).filter(x -> (x.getId( ) == id) && (x.getUsername( ).equals(username))).collect(Collectors.toList( ));
+                if (!routes.isEmpty( )) {
                     routes.forEach(routeBook::remove);
                     return true;
                 }
@@ -128,10 +127,11 @@ public class Navigator implements ICollectionManager {
         lock.writeLock( ).lock( );
         try {
             if (db.updateId(id, route, username)) {
-                List<Route> routes = routeBook.toList().stream().filter(x -> x.getId() == id).collect(Collectors.toList());
-                if(!routes.isEmpty()){
+                List<Route> routes = routeBook.toList( ).stream( ).filter(x -> x.getId( ) == id).collect(Collectors.toList( ));
+                if (!routes.isEmpty( )) {
                     routes.forEach(routeBook::remove);
                     routeBook.add(id, route);
+                    return true;
                 }
             }
             return false;
@@ -213,11 +213,11 @@ public class Navigator implements ICollectionManager {
     public void removeGreater (Route route, String username) {
         lock.writeLock( ).lock( );
         try {
-            routeBook.toList( ).stream( ).filter(x -> sort(route).indexOf(x) > sort(route).indexOf(route)).forEach(x -> {
-                if (db.removeById(x.getId( ), username))
-                    routeBook.toList( ).stream( ).filter(y -> (sort(route).indexOf(x) > sort(route).indexOf(route)) && (x.getUsername( ).equals(username))).limit(1).forEach(routeBook::remove);
 
-            });
+            routeBook.toList( ).stream( ).filter(x -> sort(route).indexOf(x) > sort(route).indexOf(route)).forEach(x -> {
+                if (db.removeById(x.getId( ), username)) {
+                    routeBook.remove(x);
+                } });
         } finally {
             lock.writeLock( ).unlock( );
         }
@@ -233,8 +233,7 @@ public class Navigator implements ICollectionManager {
         lock.writeLock( ).lock( );
         try {
             routeBook.toList( ).stream( ).filter(x -> sort(route).indexOf(x) < sort(route).indexOf(route)).forEach(x -> {
-                if (db.removeById(x.getId( ), username))
-                    routeBook.toList( ).stream( ).filter(y -> (sort(route).indexOf(x) < sort(route).indexOf(route)) && (x.getUsername( ).equals(username))).limit(1).forEach(routeBook::remove);
+                if (db.removeById(x.getId( ), username)) routeBook.remove(x);
             });
         } finally {
             lock.writeLock( ).unlock( );

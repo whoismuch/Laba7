@@ -12,6 +12,7 @@ import java.nio.channels.SocketChannel;
 import java.nio.channels.UnresolvedAddressException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 
@@ -30,14 +31,16 @@ public class ClientProviding {
     private boolean everythingIsAlright;
     private String address;
     private String port;
-    private boolean begin;
+    private int alrightAuthentication = 0;
 
-    public ClientProviding ( ) {
+    public ClientProviding (String address, String port) {
         Scanner scanner = new Scanner(System.in);
         userManager = new UserManager(scanner,
                 new BufferedWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8)),
                 true);
-        begin = true;
+
+        this.address = address;
+        this.port = port;
     }
 
     /**
@@ -61,11 +64,6 @@ public class ClientProviding {
             outcomingchannel.configureBlocking(false);
             outcomingchannel.register(selector, SelectionKey.OP_READ);
 
-            if (begin) {
-                authentication();
-                begin = false;
-            }
-
             clientLaunch();
 
         } catch (UnresolvedAddressException ex) {
@@ -78,8 +76,12 @@ public class ClientProviding {
             clientWork( );
         } catch (IOException e) {
             lostConnection( );
-            enterAddress();
             clientWork( );
+        } catch (NoSuchElementException ex) {
+            System.out.println("Ну и зачем?");
+        } catch (NullPointerException ex) {
+            userManager.writeln("Упссс...У нас сетевые неполадочки");
+            clientWork();
         }
     }
 
@@ -89,10 +91,23 @@ public class ClientProviding {
             String line = "check";
             while (!line.equals("exit")) {
 
+                while (alrightAuthentication == 0) {
+                    selector.select( );
+                    userManager.setAvailable((HashMap) dataExchangeWithServer.getFromServer( ));
+                    authentication();
+                    CommandDescription command = new CommandDescription(null, null, null, username, password, choice);
+                    dataExchangeWithServer.sendToServer(command);
+                    if (getResult()) {
+                        choice = "Авторизация";
+                        alrightAuthentication = 1;
+                    }
+                }
+
                 if (everythingIsAlright) {
                     selector.select( );
                     userManager.setAvailable((HashMap) dataExchangeWithServer.getFromServer( ));
                 }
+
                 userManager.write("Введите команду: ");
                 line = userManager.read( );
                 line = line.trim( );
@@ -131,7 +146,7 @@ public class ClientProviding {
                     }
                 } else {
                     sendCommand( );
-                    getResult( );
+                    getResult();
                 }
 
             }
@@ -159,20 +174,27 @@ public class ClientProviding {
         dataExchangeWithServer.sendToServer(command);
     }
 
-    public void getResult ( ) throws IOException {
+    public boolean getResult () throws IOException {
         selector.select( );
         String s = dataExchangeWithServer.getFromServer( ).toString( );
         userManager.writeln(s);
 
-        if (s.contains("Пользователь с таким логином не зарегистрирован" + "\nИзвините, ваш запрос не может быть выполнен. Попробуйте еще раз") || s.contains("Вы ввели неправильный пароль" + "\nИзвините, ваш запрос не может быть выполнен. Попробуйте еще раз") || s.contains("Пользователь с таким логином уже зарегистрирован. Может, вам стоит авторизоваться?" + "\nИзвините, ваш запрос не может быть выполнен. Попробуйте еще раз")) {
+        if (s.contains("\nИзвините, ваш запрос не может быть выполнен. Попробуйте еще раз")) {
             authentication( );
+            return false;
         }
+
+        if (s.equals("Пользователь с таким логином не зарегистрирован") || s.equals("Вы ввели неправильный пароль") || s.equals("Пользователь с таким логином уже зарегистрирован. Может, вам стоит авторизоваться?")) {
+            return false;
+        }
+
+        return true;
     }
 
     public void getScriptResult (int commandNumber) {
         for (int i = 0; i <= commandNumber; i++) {
             try {
-                getResult( );
+                getResult();
             } catch (IOException e) {
                 lostConnection( );
                 clientWork( );

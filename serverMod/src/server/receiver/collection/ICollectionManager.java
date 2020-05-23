@@ -18,7 +18,7 @@ public interface ICollectionManager {
 
     void clear (String username);
 
-    boolean removeById (long id, String username);
+    boolean removeById (Long id, String username);
 
     String show ( );
 
