@@ -69,7 +69,7 @@ public class ExecuteScriptCommand implements Command {
 
                 }
 
-                result = driver.execute(icm, commandname, argue, route, driver, username) + "\n";
+                result += driver.execute(icm, commandname, argue, route, driver, username) + "\n";
             }
             return result;
         } catch (NullPointerException e) {

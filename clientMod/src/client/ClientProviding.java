@@ -142,7 +142,7 @@ public class ClientProviding {
                         }
                         arg = userManager.getFinalScript( );
                         sendCommand( );
-                        getScriptResult(commandNumber);
+                        getResult();
                     }
                 } else {
                     sendCommand( );
@@ -189,18 +189,6 @@ public class ClientProviding {
         }
 
         return true;
-    }
-
-    public void getScriptResult (int commandNumber) {
-        for (int i = 0; i <= commandNumber; i++) {
-            try {
-                getResult();
-            } catch (IOException e) {
-                lostConnection( );
-                clientWork( );
-            }
-            System.out.println("\n");
-        }
     }
 
     public void lostConnection ( ) {
