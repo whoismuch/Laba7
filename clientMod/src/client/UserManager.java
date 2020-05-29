@@ -15,10 +15,11 @@ public class UserManager {
     private static Scanner scanner;
     private boolean manualInput;
     private String finalScript;
+    private String result;
 
-    private HashMap<String,String> available = new HashMap<>();
+    private HashMap<String, String> available = new HashMap<>( );
 
-    public UserManager(Scanner scanner, Writer writer, boolean manualInput) {
+    public UserManager (Scanner scanner, Writer writer, boolean manualInput) {
         this.writer = writer;
         this.scanner = scanner;
         this.manualInput = manualInput;
@@ -29,8 +30,8 @@ public class UserManager {
      *
      * @return строка
      */
-    public String read() {
-        return scanner.nextLine();
+    public String read ( ) {
+        return scanner.nextLine( );
     }
 
     /**
@@ -38,10 +39,10 @@ public class UserManager {
      *
      * @param message строка для вывода.
      */
-    public void write(String message) {
+    public void write (String message) {
         try {
             writer.write(message);
-            writer.flush();
+            writer.flush( );
         } catch (IOException e) {
             System.out.print("Ошибка при выводе(( ");
         }
@@ -52,7 +53,7 @@ public class UserManager {
      *
      * @param message строка для вывода.
      */
-    public void writeln(String message) {
+    public void writeln (String message) {
         write(message + "\n");
     }
 
@@ -62,26 +63,26 @@ public class UserManager {
      * @return Есть ли ещё что считывать.
      */
 
-    public Route readRoute() throws NoSuchElementException {
+    public Route readRoute ( ) throws NoSuchElementException {
         String name;
         do {
             name = readString("Введите название маршрута: ", false);
-        } while (name.isEmpty());
-        Coordinates coordinates = readCoordinates();
-        Location from = readLocationFrom();
-        Location to = readLocationTo();
+        } while (name.isEmpty( ));
+        Coordinates coordinates = readCoordinates( );
+        Location from = readLocationFrom( );
+        Location to = readLocationTo( );
         Float distance = parseFloatInputWithParameters("Введите длину маршрута больше 1: ", 1.0f, Float.POSITIVE_INFINITY);
         return new Route(name, coordinates, from, to, distance);
     }
 
-    public Location readLocationFrom() {
+    public Location readLocationFrom ( ) {
         String name = readString("Введите название места отправления: ", true);
         Long x = parseLongInput("Введите координату места отправления x (Long): ");
         Long y = parseLongInput("Введите координату места отправления y (Long): ");
         return new Location(name, x, y);
     }
 
-    public Location readLocationTo(){
+    public Location readLocationTo ( ) {
         String name = readString("Введите название места прибытия: ", true);
         Long x = parseLongInput("Введите координату места прибытия x (Long): ");
         Long y = parseLongInput("Введите координату места прибытия y (Long): ");
@@ -89,7 +90,7 @@ public class UserManager {
     }
 
 
-    public Coordinates readCoordinates() {
+    public Coordinates readCoordinates ( ) {
         Long x = parseLongInput("Введите текущую координату местанахождения x (Long): ");
         int y = parseIntInput("Введите текущую координату местанахождения y (int): ");
         return new Coordinates(x, y);
@@ -102,7 +103,7 @@ public class UserManager {
      * @return true это значние Float
      */
 
-    public boolean checkFloatInput(String input) {
+    public boolean checkFloatInput (String input) {
         try {
             if (input == null) {
                 writeln("Это значение вам не null");
@@ -122,7 +123,7 @@ public class UserManager {
      * @param input строка которую парсим
      * @return true это значние int
      */
-    public boolean checkIntInput(String input) {
+    public boolean checkIntInput (String input) {
         try {
             if (input == null) {
                 writeln("Это значение вам не null");
@@ -142,7 +143,7 @@ public class UserManager {
      * @param input строка которую парсим
      * @return true это значние Long
      */
-    public boolean checkLongInput(String input) {
+    public boolean checkLongInput (String input) {
         try {
             if (input == null) {
                 writeln("Это значение вам не null");
@@ -156,7 +157,7 @@ public class UserManager {
         }
     }
 
-    public boolean checkCommandName(String command){
+    public boolean checkCommandName (String command) {
         if ((available.get(command) == null)) {
             writeln("Неверное имя команды: " + command);
             writeln("Введите 'help', чтобы получить список доступных команд");
@@ -165,18 +166,18 @@ public class UserManager {
         return true;
     }
 
-    public boolean checkCommandNameForScript(String command) {
+    public boolean checkCommandNameForScript (String command) {
         if ((available.get(command) == null)) {
             return false;
         }
         return true;
     }
 
-    public boolean checkElement(String command) {
+    public boolean checkElement (String command) {
         return (available.get(command).endsWith("e"));
     }
 
-    public boolean checkFieldsForScript(Scanner scanner) {
+    public boolean checkFieldsForScript (Scanner scanner) {
         try {
             String name = scanner.nextLine( );
             Long x = Long.parseLong(scanner.nextLine( ));
@@ -194,7 +195,9 @@ public class UserManager {
         return true;
     }
 
-    public boolean checkFile(String command) { return available.get(command).startsWith("File");}
+    public boolean checkFile (String command) {
+        return available.get(command).startsWith("File");
+    }
 
     public boolean checkArgForScript (String command, String arg) {
         String trueArg = available.get(command);
@@ -224,24 +227,24 @@ public class UserManager {
     }
 
 
-    public boolean checkArg(String command, String arg) {
+    public boolean checkArg (String command, String arg) {
         String trueArg = available.get(command);
         if (!trueArg.equals("null") && !trueArg.equals("e") && arg == null) {
             writeln("А где аргумент? \n Попробуйте, позязя, еще раз");
             return false;
         }
         if ((trueArg.equals("null") || trueArg.equals("e")) && arg != null) {
-                writeln("И зачем аргумент? Вы понимаете, что наделали?");
-                return false;
+            writeln("И зачем аргумент? Вы понимаете, что наделали?");
+            return false;
         }
         if (trueArg.startsWith("Float")) {
-                try {
-                    Float.parseFloat(arg);
-                    return true;
-                } catch (NumberFormatException e) {
-                    writeln("Мне жаль, но аргумент должен быть Float");
-                    return false;
-                }
+            try {
+                Float.parseFloat(arg);
+                return true;
+            } catch (NumberFormatException e) {
+                writeln("Мне жаль, но аргумент должен быть Float");
+                return false;
+            }
         }
         if (trueArg.startsWith("Long")) {
             try {
@@ -251,11 +254,11 @@ public class UserManager {
                 writeln("Мне жаль, но аргумент должен быть Long");
             }
         }
-        
+
         return true;
     }
 
-    public  int  checkContentOfFile (String arg, int commandN) {
+    public int checkContentOfFile (String arg, int commandN) {
         try {
             if (arg.equals("")) throw new NullPointerException( );
             CharArrayReader car = new CharArrayReader(arg.toCharArray( ));
@@ -304,7 +307,7 @@ public class UserManager {
         }
     }
 
-    public void finalContentOfFile(String previousArg, String lineWithExScript, String presentArg ) {
+    public void finalContentOfFile (String previousArg, String lineWithExScript, String presentArg) {
         finalScript = previousArg.replace(lineWithExScript, presentArg);
     }
 
@@ -314,7 +317,7 @@ public class UserManager {
             CharBuffer charBuffer = CharBuffer.allocate(10);
             File file = new File(arg);
 
-            if (!file.exists( )) throw new FileNotFoundException();
+            if (!file.exists( )) throw new FileNotFoundException( );
             else if (!file.canRead( )) throw new NoPermissionsException("бе");
 
             FileReader fileReader = new FileReader(file);
@@ -342,11 +345,11 @@ public class UserManager {
         }
     }
 
-        /**
+    /**
      * Метод парсит в определенном диапазоне
      */
 
-    public Float parseFloatInputWithParameters(String message, float min, float max) {
+    public Float parseFloatInputWithParameters (String message, float min, float max) {
         Float res;
         do {
             res = parseFloatInput(message);
@@ -358,7 +361,7 @@ public class UserManager {
      * Метод парсит строку в Int
      */
 
-    public Float parseFloatInput(String message) {
+    public Float parseFloatInput (String message) {
         String res;
         do {
             res = readString(message, false);
@@ -370,7 +373,7 @@ public class UserManager {
      * Метод парсит строку в Int
      */
 
-    public Integer parseIntInput(String message) {
+    public Integer parseIntInput (String message) {
         String res;
         do {
             res = readString(message, false);
@@ -382,7 +385,7 @@ public class UserManager {
      * Метод проверяет строоку на Long
      */
 
-    public Long parseLongInput(String message) {
+    public Long parseLongInput (String message) {
         String res;
         do {
             res = readString(message, false);
@@ -402,7 +405,7 @@ public class UserManager {
      * @param nullable Флаг. True - если мы допускаем пустой ввод от пользователя. False - если нам надо добиться от него не пустого ввода.
      */
 
-    public String readString(String message, boolean nullable) throws NoSuchElementException {
+    public String readString (String message, boolean nullable) throws NoSuchElementException {
         String result = "";
         do {
             if (result == null) {
@@ -411,9 +414,9 @@ public class UserManager {
             if (manualInput) {
                 write(message);
             }
-            result = scanner.nextLine();
-            result = result.trim();
-            result = result.isEmpty() ? null : result;
+            result = scanner.nextLine( );
+            result = result.trim( );
+            result = result.isEmpty( ) ? null : result;
         } while (manualInput && !nullable && result == null);
         if (!manualInput && result == null) {
             throw new NoCorrectInputException("Это значение не может быть null.");
@@ -421,30 +424,28 @@ public class UserManager {
         return result;
     }
 
-    public String readChoice(String message, boolean nullable) throws NoSuchElementException {
+    public String readChoice (String message, boolean nullable) throws NoSuchElementException {
         String result = null;
         while (manualInput && !nullable && result == null) {
             if (manualInput) {
                 write(message);
             }
-            result = scanner.nextLine();
-            result= result.trim();
+            result = scanner.nextLine( );
+            result = result.trim( );
+            this.result = result;
             if (result == null) {
                 writeln("Введите не пустую строку");
+
             }
-            if (!result.equals("Регистрация") && !result.equals("Авторизация")) {
+            if (!result.equals("R") && !result.equals("A")) {
                 writeln("Введите коректный ответ");
-                readChoice(message, nullable);
+                readChoice(message, false);
             }
         }
         if (!manualInput && result == null) {
             throw new NoCorrectInputException("Это значение не может быть null.");
         }
-        return result;
-    }
-
-    public HashMap<String, String> getAvailable ( ) {
-        return available;
+        return this.result;
     }
 
     public void setAvailable (HashMap<String, String> available) {

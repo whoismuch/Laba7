@@ -24,6 +24,7 @@ public class ServerConnection implements Runnable {
     private Future a;
     private Future b;
     private Future c;
+    private Future d;
 
 
     public ServerConnection (Object request, Socket incoming, DataBase db, RouteBook routeBook, Navigator navigator, Driver driver, ExecutorService executorService, SendToClient sendToClient) {
@@ -71,6 +72,20 @@ public class ServerConnection implements Runnable {
             ex.printStackTrace( );
         } catch (NullPointerException ex) {
             System.out.println("Мы дико извиняемся, но у нас неполадочки со связью" );
+            sendToClient.setMessage("Упс...у сервера маленькие неполадОчки");
+            d = executorService.submit(sendToClient);
+            try {
+                d.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace( );
+            } catch (ExecutionException e) {
+                e.printStackTrace( );
+            }
+            try {
+                incoming.close();
+            } catch (IOException e) {
+                e.printStackTrace( );
+            }
         }
 
     }
@@ -94,10 +109,10 @@ public class ServerConnection implements Runnable {
 
             authenticationResult = null;
 
-            if (command.getChoice( ).startsWith("Р")) {
+            if (command.getChoice( ).equals("R")) {
                 authenticationResult = db.registration(command.getUsername( ), command.getPassword( ));
             }
-            if (command.getChoice( ).startsWith("А")) {
+            if (command.getChoice( ).equals("A")) {
                 authenticationResult = db.authorization(command.getUsername( ), command.getPassword( ));
             }
 

@@ -14,6 +14,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class ClientProviding {
@@ -32,6 +34,7 @@ public class ClientProviding {
     private String address;
     private String port;
     private int alrightAuthentication = 0;
+    private boolean good;
 
     public ClientProviding (String address, String port) {
         Scanner scanner = new Scanner(System.in);
@@ -64,29 +67,29 @@ public class ClientProviding {
             outcomingchannel.configureBlocking(false);
             outcomingchannel.register(selector, SelectionKey.OP_READ);
 
-            clientLaunch();
+            clientLaunch( );
 
         } catch (UnresolvedAddressException ex) {
             userManager.writeln("Ойойой, такого адреса ведь не существует");
-            enterAddress();
+            enterAddress( );
             clientWork( );
         } catch (NumberFormatException ex) {
             userManager.writeln("Тут, видимо, должна быть циферка, попробуйте еще раз, позязя");
-            enterAddress();
+            enterAddress( );
             clientWork( );
         } catch (IOException e) {
             lostConnection( );
             clientWork( );
         } catch (NoSuchElementException ex) {
-            System.out.println("Ну и зачем?");
+            userManager.writeln("Ну и зачем?");
         } catch (NullPointerException ex) {
             userManager.writeln("Упссс...У нас сетевые неполадочки");
-            clientWork();
+            clientWork( );
         }
     }
 
 
-    public void clientLaunch ( )  {
+    public void clientLaunch ( ) {
         try {
             String line = "check";
             while (!line.equals("exit")) {
@@ -94,11 +97,11 @@ public class ClientProviding {
                 while (alrightAuthentication == 0) {
                     selector.select( );
                     userManager.setAvailable((HashMap) dataExchangeWithServer.getFromServer( ));
-                    authentication();
+                    authentication( );
                     CommandDescription command = new CommandDescription(null, null, null, username, password, choice);
                     dataExchangeWithServer.sendToServer(command);
-                    if (getResult()) {
-                        choice = "Авторизация";
+                    if (getResult( )) {
+                        choice = "A";
                         alrightAuthentication = 1;
                     }
                 }
@@ -142,17 +145,17 @@ public class ClientProviding {
                         }
                         arg = userManager.getFinalScript( );
                         sendCommand( );
-                        getResult();
+                        getResult( );
                     }
                 } else {
                     sendCommand( );
-                    getResult();
+                    getResult( );
                 }
 
             }
 
         } catch (IOException e) {
-            clientWork();
+            clientWork( );
         }
     }
 
@@ -174,7 +177,7 @@ public class ClientProviding {
         dataExchangeWithServer.sendToServer(command);
     }
 
-    public boolean getResult () throws IOException {
+    public boolean getResult ( ) throws IOException {
         selector.select( );
         String s = dataExchangeWithServer.getFromServer( ).toString( );
         userManager.writeln(s);
@@ -207,24 +210,44 @@ public class ClientProviding {
         }
     }
 
-    public void authentication ( ){
-        String choice = userManager.readChoice("Вас интересует Регистрация или Авторизация? Введите корректный ответ: ", false);
-        String username = userManager.readString("Введите логин: ", false);
-        String password = userManager.readString("Введите пароль: ", false);
-        if (username.contains(" ") || password.contains(" ")) {
-            userManager.writeln("Логин и пароль не должны содержать пробелы");
-            authentication( );
+    public void authentication ( ) {
+        while (true) {
+            String choice = userManager.readChoice("Вас интересует Регистрация или Авторизация? Введите корректный ответ (R или A): ", false);
+            String username = userManager.readString("Введите логин: ", false);
+            String password = userManager.readString("Введите пароль: ", false);
+            if (username.contains(" ") || password.contains(" ")) {
+                userManager.writeln("Логин и пароль не должны содержать пробелы");
+                continue;
+            }
+            if (!checkLanguage(username) || !checkLanguage(password) || !checkLanguage(choice)) {
+                userManager.writeln("Вам следует использовать только латиницу( Вините helios, не меня");
+                continue;
+            }
+            this.username = username;
+            this.password = password;
+            this.choice = choice;
+            break;
         }
-        this.username = username;
-        this.password = password;
-        this.choice = choice;
 
     }
 
-    public void enterAddress() {
+    public void enterAddress ( ) {
         address = userManager.readString("Введите адрес: ", false);
         port = userManager.readString("Введите порт: ", false);
         everythingIsAlright = true;
+    }
+
+    public boolean checkLanguage (String string) {
+        Pattern patlatletter = Pattern.compile("[a-zA-Z]{1}");
+        Pattern patnumber = Pattern.compile("[0-9]{1}");
+        for (int i = 0; i < string.length( ); i++) {
+            Matcher matlatletter = patlatletter.matcher(string.subSequence(i, i + 1));
+            Matcher matnumber = patnumber.matcher(string.subSequence(i, i + 1));
+            if (!matlatletter.matches( ) && !matnumber.matches( )) {
+                return false;
+            }
+        }
+        return true;
     }
 }
 
